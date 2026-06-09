@@ -1,0 +1,26 @@
+# Dataset (too large for git)
+*.npz
+
+# Trained model binaries
+trained_models/*.h5
+trained_models/*.npz
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+
+# macOS
+.DS_Store
+
+# Arduino build artifacts
+build/
+*.elf
+*.bin
+*.map
+
+# Sounds dataset (large)
+ML_Model/sounds/ESC-50/audio/
+ML_Model/sounds/ESC-50/meta/
