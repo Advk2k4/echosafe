@@ -1,0 +1,222 @@
+================================================================================
+CLAUDE CODE PROMPT — ECHOSAFE CONSOLIDATION, VERIFICATION & BUILD
+================================================================================
+
+PROJECT CONTEXT
+================================================================================
+
+EchoSafe is a wearable, around-the-ear sound-alert device for people who are
+deaf or hard of hearing, shaped like a Shokz-style bone-conduction headset.
+It listens for specific target sounds (currently: horns, bells, gunshots,
+sirens — plus a "noise" background/reject class), classifies them on-device
+with an ML model, and fires directional haptic motors so the wearer knows
+WHAT sound occurred and WHICH direction it came from.
+
+- 4 MEMS microphones, one per side of the head (front-left/top-left,
+  front-right/top-right, rear-left/bottom-left, rear-right/bottom-right),
+  used both for ML classification and for direction detection via
+  cross-correlation-based TDOA (time-difference-of-arrival) between mic
+  pairs — whichever mic(s) a sound reaches first indicate direction; if two
+  mics are equidistant the sound arrives at both simultaneously and both
+  motors fire together.
+- 4 haptic motors (DRV2605 driver ICs via a TCA9548A I2C mux), positioned to
+  mirror the mic layout, so activation location communicates direction.
+- MCU: ESP32-S3-WROOM-1 (N16R8 variant). This has already been validated as
+  the right choice — do NOT propose switching MCUs. The apparent "only 2 I2S
+  peripherals but need 4 mics" problem is already solved: each I2S bus runs
+  in stereo (L/R) mode with two mics sharing one data line via their L/R
+  select pin, so I2S_NUM_0 carries the TOP pair and I2S_NUM_1 carries the
+  BOTTOM pair — 4 mics, 2 physical buses, no mux chip required.
+
+THIS IS NOT A GREENFIELD PROJECT. Significant work already exists across
+several folders on this machine (paths below). Your first job is
+understanding and consolidating that work, NOT starting over.
+
+================================================================================
+EXISTING PROJECT STATE — READ THIS BEFORE DOING ANYTHING
+================================================================================
+
+Known folders (verify current contents yourself — this is a snapshot, not
+guaranteed current):
+
+1. /Users/aadvikmishra/Documents/EchoSafe_ML/  — PRIMARY SOURCE OF TRUTH for
+   firmware + ML. Has its own CLAUDE.md with detailed architecture notes —
+   READ IT FIRST, it documents pin maps, the training pipeline, dataset
+   schema, and file-by-file firmware descriptions. Key contents:
+   - echosafe_feature_collector/echosafe_feature_collector.ino — data
+     collection firmware (single mic, streams MFCC features over serial)
+   - echosafe_inference/echosafe_inference.ino — single-mic + speaker
+     production inference firmware (reads model_weights.h, plays WAV
+     alerts via MAX98357A over LittleFS). Requires a custom partition table
+     (partitions.csv) — default Arduino partition scheme is too small.
+   - echosafe_full_system/echosafe_full_system.ino — the FULL SYSTEM
+     firmware: 4 mics + 2 speakers + 4 haptic motors, three-phase loop
+     (ML inference → TDOA direction detection → alert playback). THIS is
+     the firmware that matches the end-goal device. Its confirmed working
+     status is UNKNOWN as of this prompt — treat it as unverified until
+     you test it.
+   - mic_oldML.c — reference implementation of the 4-mic TDOA + DRV2605
+     haptic logic (pin mapping, cross-correlation lag detection, quadrant
+     mapping, amplitude-weighted azimuth estimate). DO NOT DELETE THIS
+     FILE. It's the working reference the full-system firmware is based on.
+   - retrain.py / train_on_esp32_features.py — training scripts, read
+     echosafe_dataset.npz, write echosafe_inference/model_weights.h
+   - echosafe_dataset.npz — 1059 labeled samples, 5 classes (horns=201,
+     noise=258, bells=200, gunshots=200, sirens=200). NOT in git (too
+     large) — must be present locally to retrain, treat as precious.
+   - Current model: 97.5% test accuracy (Feb 2026), MLP
+     403→128→Dropout(0.3)→64→Dropout(0.3)→5, weights in
+     echosafe_inference/model_weights.h — AUTO-GENERATED, never hand-edit.
+   - Also present but NOT yet audited by anyone: echosafe_fixed/,
+     final_test/ subfolders — figure out what these are and whether they're
+     current, stale, or duplicates before assuming either way.
+   - Team repo: https://github.com/umass-ece-sdp/sdp26-22 (private).
+     Local EchoSafe_ML/ maps to software/ML/ in that repo. Do NOT push to
+     this repo without explicit confirmation each time.
+
+2. /Users/aadvikmishra/Documents/EchoSafe_RevA/ — HARDWARE. A real KiCad
+   PCB project (not just a plan): EchoSafe_RevA/EchoSafe_RevA.kicad_sch,
+   .kicad_pcb, .kicad_pro, with a populated component library (lib/symbols,
+   lib/footprints) including ESP-32, ICS-43434 (the mic part actually
+   used), MAX98357AETE-T (speaker amp), haptic motor footprints, and a
+   power management IC. There are dated backups (Oct 2025) suggesting this
+   has been actively worked on. Physical build status (ordered? fabbed?
+   assembled?) is UNKNOWN — ask the user, don't assume.
+
+3. /Users/aadvikmishra/Documents/EchoSafe_Audio/ — appears to be an OLDER
+   or PARALLEL ML effort: different feature set (16 hand-picked features:
+   13 MFCCs + spectral centroid + bandwidth + zero-crossing-rate, vs. the
+   403-feature/31-frame MFCC-only approach in EchoSafe_ML), different class
+   set (includes "barks" and "VehicleApproaching", which EchoSafe_ML's
+   current 5-class set does NOT), lower accuracy (88.89% per its
+   UPDATES_FEB_9.md vs. 97.5% in EchoSafe_ML). Treat this as LIKELY
+   SUPERSEDED — do not merge its model or feature pipeline into the
+   consolidated project as if it were current, but don't delete it either.
+   Flag it to the user and ask before archiving/discarding.
+
+4. /Users/aadvikmishra/Documents/EchoSafeTesting/ — empty except for a
+   .DS_Store. Likely abandoned; confirm with user before removing.
+
+5. /Users/aadvikmishra/Documents/EchoSafe_New/ — THIS project folder.
+   Currently empty. Its intended purpose (per the user) is to become the
+   ONE clean, consolidated, well-documented version of the working system
+   going forward — the place all future EchoSafe work happens.
+
+================================================================================
+YOUR TASK — WORK IN PHASES, CONFIRM BEFORE DESTRUCTIVE STEPS
+================================================================================
+
+PHASE 0 — INVENTORY (read-only, no changes)
+--------------------------------------------------------------------------------
+- Read EchoSafe_ML/CLAUDE.md in full.
+- List the actual current contents of EchoSafe_ML/, EchoSafe_RevA/,
+  EchoSafe_Audio/, and EchoSafeTesting/ (they may have changed since this
+  prompt was written).
+- Specifically identify what echosafe_fixed/ and final_test/ are.
+- Produce a short written inventory report for the user: what's current,
+  what's duplicate/stale, what's unclear. Do not restructure anything yet.
+- Confirm your proposed consolidation plan with the user before executing
+  Phase 1. Do not skip this confirmation step.
+
+PHASE 1 — CONSOLIDATE INTO EchoSafe_New
+--------------------------------------------------------------------------------
+- Propose (then, once approved, create) a clean directory structure inside
+  EchoSafe_New/, something like:
+    firmware/
+      echosafe_inference/        (single-mic reference — keep working)
+      echosafe_full_system/      (4-mic production target)
+      echosafe_feature_collector/
+      mic_oldML.c                (kept verbatim as reference)
+    ml/
+      retrain.py, train_on_esp32_features.py, download_sounds.py,
+      play_sound.py, serial_logger.py, trained_models/
+      (echosafe_dataset.npz copied in, gitignored — never lose the only copy)
+    hardware/
+      (RevA KiCad project — ask the user whether to copy it in or keep it
+      as an external reference, since KiCad projects are sensitive to
+      relative folder paths and moving them carelessly can break footprint
+      library links)
+    docs/
+      CLAUDE.md — merged/updated architecture doc: pin maps for BOTH the
+      single-mic and full-system firmware, dataset/model specs, class
+      list, confidence threshold, partition table requirements, build/
+      upload instructions, and this consolidation's decision log.
+  Adjust this structure based on what Phase 0 actually finds — this is a
+  starting proposal, not a rigid spec.
+- Copy (don't move, until the user confirms the new layout is validated)
+  files from EchoSafe_ML and EchoSafe_RevA into the new structure. Leave
+  the original folders intact as a safety net until the user explicitly
+  says it's safe to retire them.
+- Set up EchoSafe_New as its own git repo with a sensible .gitignore
+  (exclude *.npz, *.h5, Arduino build artifacts, .DS_Store — mirror
+  EchoSafe_ML's existing .gitignore, don't reinvent it).
+
+PHASE 2 — STATIC CROSS-CHECK (hardware vs firmware, no hardware needed)
+--------------------------------------------------------------------------------
+- Before any physical testing, cross-reference the GPIO pin assignments in
+  echosafe_full_system.ino / mic_oldML.c against the actual nets in the
+  RevA KiCad schematic. Flag any mismatch clearly — this is the single
+  highest-value check you can do without hardware in hand, since firmware
+  and PCB were possibly developed somewhat independently.
+- Sanity-check the I2S port-sharing logic: I2S_NUM_1 is time-multiplexed
+  between the BOTTOM mic pair (RX) and the speaker (TX) in the existing
+  code — confirm the full-system firmware correctly reinitializes this
+  peripheral in both directions without leaving it in the wrong mode.
+- Note any other internal inconsistency you find (e.g. sample-rate
+  mismatches between ML capture and direction-detection capture, confirm
+  CONFIDENCE_THR / class index mapping matches training script output).
+
+PHASE 3 — HARDWARE BRING-UP (needs the user's hands — this is interactive)
+--------------------------------------------------------------------------------
+The user is NOT currently sure of the hardware or firmware status. Do not
+assume anything works. Propose a step-by-step bring-up checklist and walk
+the user through it interactively (you can't flash/probe hardware
+yourself — read back what the user reports from the Serial Monitor):
+  1. Confirm what hardware is actually on the bench right now (dev-kit
+     breadboard prototype vs. an assembled RevA board) — ASK, don't guess.
+  2. Flash echosafe_inference.ino (simplest, most likely to already work)
+     and confirm single-mic ML classification + speaker alert playback.
+  3. Only once step 2 is solid, move to echosafe_full_system.ino and test
+     subsystems individually via its serial commands before trusting the
+     combined loop: h (haptic test — do all 4 motors fire in the right
+     physical position?), d (direction test — does TDOA give sane
+     quadrants for sounds from known directions?), t (tone test), p
+     (speaker test), then i/r (full inference).
+  4. Log what actually works vs. what breaks, and fix iteratively. Update
+     docs/CLAUDE.md with findings as you go so this doesn't have to be
+     rediscovered again later.
+
+PHASE 4 — ONLY AFTER PHASE 3 IS SOLID
+--------------------------------------------------------------------------------
+Once the full system is confirmed working end-to-end, next steps (don't
+start these early) are enclosure/mechanical fit against the Shokz-style
+form factor, power/battery integration, and any RevB PCB changes the
+bring-up process surfaces as necessary. Don't plan this in detail yet —
+surface it as a "what's next" note once Phase 3 is done.
+
+================================================================================
+HARD CONSTRAINTS — DO NOT VIOLATE
+================================================================================
+
+- Never hand-edit model_weights.h — it's auto-generated by retrain.py.
+- Never delete mic_oldML.c.
+- echosafe_dataset.npz is the only copy of 1059 labeled samples — never
+  overwrite or discard it without an explicit backup.
+- Always keep a "noise"/background reject class in any retraining —
+  omitting it was previously found to cause every background sound to be
+  misclassified as a target.
+- Do not push to the team repo (github.com/umass-ece-sdp/sdp26-22) without
+  asking first, every time.
+- Do not delete EchoSafe_ML, EchoSafe_RevA, EchoSafe_Audio, or
+  EchoSafeTesting outright — archive/flag, don't destroy, until the user
+  explicitly confirms EchoSafe_New has fully absorbed what's needed.
+- When something is ambiguous (is a file current or stale? is a folder
+  safe to retire?), ask rather than guessing.
+
+================================================================================
+START HERE
+================================================================================
+
+Begin with Phase 0 only. Report back your inventory findings and a proposed
+consolidation plan before touching any files.
+================================================================================

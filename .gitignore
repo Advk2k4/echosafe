@@ -1,0 +1,22 @@
+# Datasets & trained model artifacts (large binaries, regenerate via ml/retrain.py)
+*.npz
+*.h5
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Arduino / ESP32 build artifacts
+build/
+*.bin
+*.elf
+*.map
+*.hex
+
+# KiCad auto-backups
+**/*-backups/**
+
+# OS
+.DS_Store

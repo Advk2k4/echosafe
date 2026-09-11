@@ -1,0 +1,8 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ESP-32")(type "KiCad")(uri "/Users/aadvikmishra/Documents/EchoSafe_RevA/lib/symbols/KiCADv6/2025-10-04_18-41-11.kicad_sym")(options "")(descr ""))
+  (lib (name "PowerM IC")(type "KiCad")(uri "/Users/aadvikmishra/Documents/EchoSafe_RevA/lib/symbols/KiCADv6 2/2025-10-04_18-38-35.kicad_sym")(options "")(descr ""))
+  (lib (name "Mics")(type "KiCad")(uri "/Users/aadvikmishra/Documents/EchoSafe_RevA/lib/symbols/ul_ICS-43434/KiCADv6/2025-10-04_18-57-26.kicad_sym")(options "")(descr ""))
+  (lib (name "Amplifier")(type "KiCad")(uri "/Users/aadvikmishra/Documents/EchoSafe_RevA/lib/symbols/ul_MAX98357AETE-T/KiCADv6/2025-10-04_19-25-11.kicad_sym")(options "")(descr ""))
+  (lib (name "Haptic Motor")(type "KiCad")(uri "/Users/aadvikmishra/Documents/EchoSafe_RevA/lib/symbols/C0720B001F/C0720B001F.kicad_sym")(options "")(descr ""))
+)
