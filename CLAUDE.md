@@ -251,30 +251,52 @@ management IC). **The schematic is real and detailed; the PCB layout was
 never started** (empty `.kicad_pcb`, 0 footprints placed). `datasheets/`
 and `outputs/` are currently empty.
 
-**Phase 2 cross-check result (2026-09-11): the schematic is not yet wired
-at the signal level.** Components are correctly selected and placed (ESP32-
+**Phase 2 cross-check result (2026-09-11): the schematic was not wired
+at the signal level.** Components were correctly selected and placed (ESP32-
 S3-WROOM-1-N16R8, 4× ICS-43434 mics, MAX98357AETE+T, DRV2605LDGS, NPM1300
-PMIC, battery), and the power rails are wired (`VBUS_5V`/`VSYS`/`VBAT`/
-`1V8_MIC`/`3V3_AUDIO`/`3V3_SYS`/`GND` global labels). But there are only 21
+PMIC, battery), and the power rails were wired (`VBUS_5V`/`VSYS`/`VBAT`/
+`1V8_MIC`/`3V3_AUDIO`/`3V3_SYS`/`GND` global labels). But there were only 21
 wire segments and **zero signal-net labels** anywhere in the sheet — no I2S
-(WS/BCLK/DOUT) or I2C (SDA/SCL) connections exist between the ESP32 and any
-peripheral yet, so there is nothing to cross-check against the firmware pin
-table above. That work hasn't been started, not just unverified.
+(WS/BCLK/DOUT) or I2C (SDA/SCL) connections between the ESP32 and any
+peripheral, so there was nothing to cross-check against the firmware pin
+table above. **This is still true** — see "still needed" below.
 
-Two component-count mismatches vs. what the firmware architecture expects,
-also worth resolving before wiring:
-- **Only 1× DRV2605LDGS (U3) is placed**, but the firmware drives 4
-  independent haptic motors via 4 separate DRV2605 ICs behind a TCA9548A
-  I2C mux (`firmware/echosafe_full_system/echosafe_full_system.ino`).
-  **No TCA9548A symbol exists in the schematic at all.** 3 more driver ICs
-  and the mux need to be added.
-- **Only 1× MAX98357AETE+T (U2) is placed**, with 2 `Device:Speaker`
-  elements (LS1, LS2) wired to it — the firmware's header comment says
-  "2x MAX98357A Speakers (parallel)," which reads as 2 amp ICs. Unclear
-  whether the schematic's "1 amp driving 2 parallel speakers" was the
-  actual intent (electrically plausible if impedance/current headroom
-  allows it) or a second amp IC is still needed — worth confirming before
-  wiring, not after.
+**Component-count mismatch fixed (2026-09-11):** the schematic had only
+1× DRV2605LDGS (U3) and no TCA9548A mux, against the firmware's 4-driver-
+behind-a-mux architecture. Added 3 more DRV2605LDGS instances (U6, U7, U8)
+and 1 TCA9548A (U5, 24-pin TSSOP, pinout taken directly from TI datasheet
+SCPS207F — not from memory) to `hardware/EchoSafe_RevA/EchoSafe_RevA/EchoSafe_RevA.kicad_sch`.
+**These are placed but not yet wired** — same as every other signal net in
+this schematic, connecting them (ESP32 SDA/SCL → mux upstream, mux SD0-3/
+SC0-3 → each DRV2605's SDA/SCL, address pins to GND per the firmware's
+mux-channel-0-3 mapping) is still open work.
+
+Also fixed while in here: `sym-lib-table` had **always** pointed to
+nonexistent files (verified against the original `~/Documents/EchoSafe_RevA/`
+too — this predates the consolidation, not something the copy caused) and
+two of its library nicknames didn't match the `lib_id` prefixes actually
+used by placed symbols. Corrected to point at the real files with
+`${KIPRJMOD}`-relative paths. Practical effect: previously, opening this
+project in KiCad and trying to place a *new* instance of any of these 5
+parts from the Symbol Library browser would have failed with a missing-
+library error — already-placed symbols still displayed fine because
+`.kicad_sch` caches placed symbol definitions inline, which is the only
+reason this project has looked functional at all.
+
+Still no standalone library file exists for `Driver_Haptic` (DRV2605LDGS,
+now TCA9548A) — both live only as embedded/cached definitions in the
+`.kicad_sch`, same pattern the original DRV2605LDGS already used before
+this session. Works fine for what's placed; a real `Driver_Haptic.kicad_sym`
+would be needed to place further instances from the Symbol Library browser
+in KiCad itself.
+
+**Still needed before this can go to PCB layout:**
+1. Wire the actual I2S/I2C signal nets — the biggest remaining gap.
+2. Decide whether "1 MAX98357A driving 2 parallel speakers" (what's
+   currently placed: 1× U2 + 2× `Device:Speaker`) matches intent, or a
+   second amp IC is needed — the firmware header comment says "2x
+   MAX98357A," which reads as 2 ICs.
+3. PCB layout itself (still 0 footprints placed, 0 traces routed).
 
 ---
 

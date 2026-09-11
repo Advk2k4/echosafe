@@ -56,9 +56,21 @@ left out.
 - **No PCB has ever been laid out or fabricated** for RevA — the KiCad
   `.kicad_pcb` file is empty. Any physical bring-up needs a breadboard/
   dev-kit setup, not an assembled board.
-- **RevA schematic vs. firmware pin mapping has not been cross-checked.**
-  They may have been developed somewhat independently — verify before
-  trusting either as ground truth for wiring.
+- **RevA schematic vs. firmware pin mapping has not been cross-checked
+  at the signal level** — no I2S/I2C nets exist in the schematic to check
+  against (only 21 wire segments total, all power-rail). Still open.
+- **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
+  the TCA9548A I2C mux the firmware architecture requires. Added U5
+  (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8
+  (DRV2605LDGS, duplicated from the existing working U3). Placed only —
+  not wired to the ESP32 or to each other yet.
+- **(Fixed 2026-09-11)** `hardware/EchoSafe_RevA/EchoSafe_RevA/sym-lib-table`
+  pointed at files that never existed, even in the original folder pre-
+  dating this consolidation, plus 2 of 5 library nicknames didn't match
+  the `lib_id` prefixes actually used in the schematic. Corrected to real
+  files via `${KIPRJMOD}`-relative paths. Previously any attempt to place
+  a *new* instance of these parts in KiCad would have failed; existing
+  placements worked only because `.kicad_sch` caches symbols inline.
 - The original `EchoSafe_ML/CLAUDE.md` documented `echosafe_inference.ino`
   as having WAV playback / LittleFS / a fuller command set — the actual
   current file has none of that (mic + inference only). Fixed in this

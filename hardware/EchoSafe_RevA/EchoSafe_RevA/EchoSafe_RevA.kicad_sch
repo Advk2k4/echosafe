@@ -1143,6 +1143,234 @@
 				)
 			)
 		)
+		(symbol "Driver_Haptic:TCA9548A"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -15.24 25.4 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "TCA9548A"
+				(at 0 -25.4 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" "Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tca9548a.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Low-Voltage 8-Channel I2C Switch with Reset, TSSOP-24 (verified pinout: TCA9548A datasheet SCPS207F, PW package)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "i2c multiplexer switch mux"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TSSOP*4.4x7.8mm*P0.65mm*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TCA9548A_0_1"
+				(rectangle
+					(start -12.7 22.86)
+					(end 12.7 -22.86)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "TCA9548A_1_1"
+				(pin input line
+					(at -15.24 6.35 0)
+					(length 2.54)
+					(name "A0" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27))))
+				)
+				(pin input line
+					(at -15.24 3.81 0)
+					(length 2.54)
+					(name "A1" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27))))
+				)
+				(pin input line
+					(at -15.24 1.27 0)
+					(length 2.54)
+					(name "A2" (effects (font (size 1.27 1.27))))
+					(number "21" (effects (font (size 1.27 1.27))))
+				)
+				(pin input line
+					(at -15.24 -1.27 0)
+					(length 2.54)
+					(name "RESET" (effects (font (size 1.27 1.27))))
+					(number "3" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at -15.24 -3.81 0)
+					(length 2.54)
+					(name "SDA" (effects (font (size 1.27 1.27))))
+					(number "23" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at -15.24 -6.35 0)
+					(length 2.54)
+					(name "SCL" (effects (font (size 1.27 1.27))))
+					(number "22" (effects (font (size 1.27 1.27))))
+				)
+				(pin power_in line
+					(at 0 25.4 270)
+					(length 2.54)
+					(name "VCC" (effects (font (size 1.27 1.27))))
+					(number "24" (effects (font (size 1.27 1.27))))
+				)
+				(pin power_in line
+					(at 0 -25.4 90)
+					(length 2.54)
+					(name "GND" (effects (font (size 1.27 1.27))))
+					(number "12" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 19.05 180)
+					(length 2.54)
+					(name "SD0" (effects (font (size 1.27 1.27))))
+					(number "4" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 16.51 180)
+					(length 2.54)
+					(name "SC0" (effects (font (size 1.27 1.27))))
+					(number "5" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 13.97 180)
+					(length 2.54)
+					(name "SD1" (effects (font (size 1.27 1.27))))
+					(number "6" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 11.43 180)
+					(length 2.54)
+					(name "SC1" (effects (font (size 1.27 1.27))))
+					(number "7" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 8.89 180)
+					(length 2.54)
+					(name "SD2" (effects (font (size 1.27 1.27))))
+					(number "8" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 6.35 180)
+					(length 2.54)
+					(name "SC2" (effects (font (size 1.27 1.27))))
+					(number "9" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 3.81 180)
+					(length 2.54)
+					(name "SD3" (effects (font (size 1.27 1.27))))
+					(number "10" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 1.27 180)
+					(length 2.54)
+					(name "SC3" (effects (font (size 1.27 1.27))))
+					(number "11" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -1.27 180)
+					(length 2.54)
+					(name "SD4" (effects (font (size 1.27 1.27))))
+					(number "13" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -3.81 180)
+					(length 2.54)
+					(name "SC4" (effects (font (size 1.27 1.27))))
+					(number "14" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -6.35 180)
+					(length 2.54)
+					(name "SD5" (effects (font (size 1.27 1.27))))
+					(number "15" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -8.89 180)
+					(length 2.54)
+					(name "SC5" (effects (font (size 1.27 1.27))))
+					(number "16" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -11.43 180)
+					(length 2.54)
+					(name "SD6" (effects (font (size 1.27 1.27))))
+					(number "17" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -13.97 180)
+					(length 2.54)
+					(name "SC6" (effects (font (size 1.27 1.27))))
+					(number "18" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -16.51 180)
+					(length 2.54)
+					(name "SD7" (effects (font (size 1.27 1.27))))
+					(number "19" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at 15.24 -19.05 180)
+					(length 2.54)
+					(name "SC7" (effects (font (size 1.27 1.27))))
+					(number "20" (effects (font (size 1.27 1.27))))
+				)
+			)
+		)
 		(symbol "ESP-32:ESP32-S3-WROOM-1-N16R8"
 			(pin_names
 				(offset 0.254)
@@ -4363,6 +4591,428 @@
 			(project "EchoSafe_RevA"
 				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
 					(reference "U3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Driver_Haptic:DRV2605LDGS")
+		(at 255 40 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "93da8402-bfea-4de2-8f75-e4c201dd21a4")
+		(property "Reference" "U6"
+			(at 257.1941 50.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "DRV2605LDGS"
+			(at 257.1941 52.699999999999996 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:VSSOP-10_3x3mm_P0.5mm"
+			(at 255 40 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/drv2605l.pdf"
+			(at 255 40 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Haptic driver for LRAs and ERMs with effect library, 2-5.2V, VSSOP-10"
+			(at 255 40 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "9e6b099c-29c4-4d88-b20a-19582955a694")
+		)
+		(pin "8"
+			(uuid "516d3ea1-c84f-4091-9e63-bdfdebd275f3")
+		)
+		(pin "9"
+			(uuid "060e5ed0-0e2b-420a-95cc-fc8d3237ebc5")
+		)
+		(pin "6"
+			(uuid "246c0a81-aa6f-4fce-bd21-b8fdf0dc554b")
+		)
+		(pin "5"
+			(uuid "c3c5a3f8-d2fb-490e-98df-f7da585253f2")
+		)
+		(pin "4"
+			(uuid "c97bcd7c-4094-4eee-86b3-7fb9d1f9166c")
+		)
+		(pin "3"
+			(uuid "919531ff-3ae7-4ff4-846f-b7d2f6af4798")
+		)
+		(pin "2"
+			(uuid "1a4820bf-9403-41e3-baee-c9626fcac9dc")
+		)
+		(pin "10"
+			(uuid "c514e38c-a6d9-4034-adac-a7cdeae97903")
+		)
+		(pin "1"
+			(uuid "6a931d49-e445-452e-8dc6-a28b72a25e43")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "U6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Driver_Haptic:DRV2605LDGS")
+		(at 255 75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "527a1d6f-0a82-4475-8776-2982cd4b7101")
+		(property "Reference" "U7"
+			(at 257.1941 85.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "DRV2605LDGS"
+			(at 257.1941 87.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:VSSOP-10_3x3mm_P0.5mm"
+			(at 255 75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/drv2605l.pdf"
+			(at 255 75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Haptic driver for LRAs and ERMs with effect library, 2-5.2V, VSSOP-10"
+			(at 255 75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "322b4ac9-74cb-45fe-a8f0-4d1fc20daea1")
+		)
+		(pin "8"
+			(uuid "dbf7a450-e4ad-4631-9c6a-023037e64818")
+		)
+		(pin "9"
+			(uuid "42f1e6bc-e445-42e9-b1f0-845e3d12d412")
+		)
+		(pin "6"
+			(uuid "5e894ab8-0dc9-4862-a5c5-c3b07466781b")
+		)
+		(pin "5"
+			(uuid "818255f0-a5aa-4386-bb9c-a0b1d08f2ad6")
+		)
+		(pin "4"
+			(uuid "168b2491-256e-4051-b83b-f29ca4501373")
+		)
+		(pin "3"
+			(uuid "11b7ec40-d145-411d-af08-d3537239aacf")
+		)
+		(pin "2"
+			(uuid "0ba1ab8f-454e-43ba-8c60-19cb53b4b18f")
+		)
+		(pin "10"
+			(uuid "8e863db7-8fb3-4dfe-9fd5-1cbb5f8a2084")
+		)
+		(pin "1"
+			(uuid "9004546c-5f7a-41ea-9d7b-3d6c9634b9c2")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "U7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Driver_Haptic:DRV2605LDGS")
+		(at 255 110 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "27156df3-95cb-487b-80e3-d0b6b1be46fd")
+		(property "Reference" "U8"
+			(at 257.1941 120.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "DRV2605LDGS"
+			(at 257.1941 122.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:VSSOP-10_3x3mm_P0.5mm"
+			(at 255 110 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/drv2605l.pdf"
+			(at 255 110 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Haptic driver for LRAs and ERMs with effect library, 2-5.2V, VSSOP-10"
+			(at 255 110 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "3a86e8a8-f14b-4a0e-9968-7bc15e43e815")
+		)
+		(pin "8"
+			(uuid "745d3fda-9e2f-4c34-aa55-f283d2b0b9ff")
+		)
+		(pin "9"
+			(uuid "f058534c-e1bb-4513-a000-c43d35275e65")
+		)
+		(pin "6"
+			(uuid "6041ae2d-c01c-4c25-8eaa-d6df8d19b759")
+		)
+		(pin "5"
+			(uuid "0e22e82b-2f08-44b5-9d1a-fc320303fe1d")
+		)
+		(pin "4"
+			(uuid "e7964547-60ed-447c-9ff0-898568e6e7bb")
+		)
+		(pin "3"
+			(uuid "fe5a5253-c561-4166-9198-2595b6e4e860")
+		)
+		(pin "2"
+			(uuid "bfcbe64f-96f3-4704-96e1-c20922b6cd4a")
+		)
+		(pin "10"
+			(uuid "052f6dd2-bf80-4103-a1ea-cba8b583ff3e")
+		)
+		(pin "1"
+			(uuid "0fbee4d1-db9b-4f32-bf78-fc30c5d8d92a")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "U8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Driver_Haptic:TCA9548A")
+		(at 265 165 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ec170696-1297-4bb2-8f77-b92d9c4f1778")
+		(property "Reference" "U5"
+			(at 249.76 190.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Value" "TCA9548A"
+			(at 265 139.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "Footprint" "Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm"
+			(at 265 165 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tca9548a.pdf"
+			(at 265 165 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Voltage 8-Channel I2C Switch with Reset, TSSOP-24"
+			(at 265 165 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1f6c4c44-99cf-4075-985f-f1a752626881")
+		)
+		(pin "2"
+			(uuid "c021fbfe-6c84-4896-9f9c-0a2480d0aa04")
+		)
+		(pin "21"
+			(uuid "f02d6aa1-516f-44f1-872c-db97a845f844")
+		)
+		(pin "3"
+			(uuid "d68a9d92-c1fa-4257-b73b-92cb93d40a1f")
+		)
+		(pin "23"
+			(uuid "5ce86aeb-7e40-4d1d-b747-ccbab67d6558")
+		)
+		(pin "22"
+			(uuid "3c33c7b3-22ab-4752-8440-a714fb02cc3b")
+		)
+		(pin "24"
+			(uuid "e6eafde7-6900-4b58-a2f5-e97cd88a1c78")
+		)
+		(pin "12"
+			(uuid "63afec27-d14e-4f03-8991-1efeafbe6651")
+		)
+		(pin "4"
+			(uuid "1c83f59b-782d-4b3e-91a7-9d2f4421947a")
+		)
+		(pin "5"
+			(uuid "bf18d124-be07-40b0-ba63-3d60e99e5fef")
+		)
+		(pin "6"
+			(uuid "5faa5db3-b2db-472f-8d87-9e8ff6c210a0")
+		)
+		(pin "7"
+			(uuid "203e3b40-2f3e-4244-a071-e59f514522dd")
+		)
+		(pin "8"
+			(uuid "0501e589-16b0-4199-8bd3-9f473ed2468f")
+		)
+		(pin "9"
+			(uuid "527eebd0-9d31-4099-bd3b-8f696ef3dfc5")
+		)
+		(pin "10"
+			(uuid "44911e1b-fa55-4999-81e3-185c22f031fb")
+		)
+		(pin "11"
+			(uuid "3ee9dbb3-2e2b-40d5-8377-921e4eb429f4")
+		)
+		(pin "13"
+			(uuid "034e3b3a-63b2-4a18-b884-0a710b2d1676")
+		)
+		(pin "14"
+			(uuid "95595b67-aafa-486c-8f96-42f5d12b1c2f")
+		)
+		(pin "15"
+			(uuid "c4b3458d-14a2-4e03-b2f2-76e83ab5bc5a")
+		)
+		(pin "16"
+			(uuid "3d1f277d-7c71-4723-970a-f84040c8fb65")
+		)
+		(pin "17"
+			(uuid "e48cacd7-2652-48a9-af0a-e0ae42f1b2cb")
+		)
+		(pin "18"
+			(uuid "166f61c2-feca-4052-ac42-9fde23399343")
+		)
+		(pin "19"
+			(uuid "8de05c04-520d-44bf-a55c-1409276a66bf")
+		)
+		(pin "20"
+			(uuid "4a557dba-6ddd-429e-b9e2-755c8e478132")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "U5")
 					(unit 1)
 				)
 			)
