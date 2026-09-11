@@ -44,10 +44,15 @@ left out.
 
 ## Known issues surfaced during consolidation (not yet fixed)
 
-- **`echosafe_full_system.ino`'s own comments document a dead top-left (TL)
-  mic** (0.0000 RMS on last contact) with a workaround of switching
-  `ML_MIC_CHANNEL` to `I2S_CHANNEL_FMT_ONLY_RIGHT`. The file currently has
-  it set to `ONLY_LEFT` — check this first during bring-up.
+- **TL-mic workaround applied (2026-09-11):** `echosafe_full_system.ino`'s
+  own comments documented a dead top-left (TL) mic (0.0000 RMS on last
+  contact). `ML_MIC_CHANNEL` has been switched from `ONLY_LEFT` to
+  `I2S_CHANNEL_FMT_ONLY_RIGHT` to match the documented workaround. This is
+  a software mitigation, not a hardware fix — verify TL's actual state
+  during bring-up. Also newly confirmed: `model_weights.h` was trained on
+  the single-mic reference rig's audio (GPIO 5/6/7), not on either array
+  channel, so real accuracy recovery requires retraining on array audio,
+  not just this channel flip.
 - **No PCB has ever been laid out or fabricated** for RevA — the KiCad
   `.kicad_pcb` file is empty. Any physical bring-up needs a breadboard/
   dev-kit setup, not an assembled board.

@@ -29,15 +29,24 @@ push here without asking first, every time.
 - **Firmware:** `firmware/echosafe_full_system/` is the target build (4 mics
   + 2 speakers + 4 haptics) but its confirmed-working status is UNVERIFIED —
   nobody has confirmed it runs end-to-end on real hardware recently.
-- **Known bug, not yet fixed:** the firmware's own comments say the top-left
-  (TL) mic was reading 0.0000 RMS (dead channel) on last contact, with a
-  documented workaround of switching `ML_MIC_CHANNEL` to
-  `I2S_CHANNEL_FMT_ONLY_RIGHT` (top-right mic) in
-  `firmware/echosafe_full_system/echosafe_full_system.ino`. The file is
-  currently left set to `ONLY_LEFT` — i.e. pointed at the mic that was
-  broken last time anyone touched it. **Check TL mic RMS first during
-  bring-up** (serial output prints RMS per mic during the `d` direction-test
-  command) before assuming anything else is wrong.
+- **TL-mic workaround applied:** the firmware's own comments documented the
+  top-left (TL) mic reading 0.0000 RMS (dead channel) on last contact.
+  `ML_MIC_CHANNEL` in `firmware/echosafe_full_system/echosafe_full_system.ino`
+  has been switched to `I2S_CHANNEL_FMT_ONLY_RIGHT` (TR mic) to match. This
+  is a software workaround, not a hardware fix — confirm during bring-up
+  whether TL is actually still dead (serial output prints per-mic RMS during
+  the `d` direction-test command); if it's fine now, flipping back to
+  `ONLY_LEFT` is one line.
+  **Also note:** `model_weights.h` was trained on audio from the single-mic
+  reference rig (`echosafe_feature_collector.ino`, GPIO 5/6/7) — a different
+  physical mic than either TL or TR on the array. Neither channel is a
+  perfect distribution match for the trained model; retraining on audio
+  captured from whichever channel is actually used is the real long-term
+  fix, this workaround is a stopgap to get the system running.
+  **Direction detection is not covered by this workaround** — TDOA reads
+  all 4 mics regardless of `ML_MIC_CHANNEL`, so if TL is genuinely dead,
+  direction detection will still be degraded (that quadrant will rarely/
+  never be selected correctly) until the hardware fault itself is fixed.
 - **Hardware:** `hardware/EchoSafe_RevA/` has a complete, detailed KiCad
   *schematic* (ESP32-S3-WROOM-1, 4× ICS-43434 mics, 2× MAX98357A, 4×
   DRV2605L haptics via TCA9548A mux, a power management IC) but the
@@ -242,9 +251,30 @@ management IC). **The schematic is real and detailed; the PCB layout was
 never started** (empty `.kicad_pcb`, 0 footprints placed). `datasheets/`
 and `outputs/` are currently empty.
 
-Before laying out a PCB, cross-check every net in the schematic against the
-pin mapping table above — they were developed somewhat independently and
-have not been verified to match.
+**Phase 2 cross-check result (2026-09-11): the schematic is not yet wired
+at the signal level.** Components are correctly selected and placed (ESP32-
+S3-WROOM-1-N16R8, 4× ICS-43434 mics, MAX98357AETE+T, DRV2605LDGS, NPM1300
+PMIC, battery), and the power rails are wired (`VBUS_5V`/`VSYS`/`VBAT`/
+`1V8_MIC`/`3V3_AUDIO`/`3V3_SYS`/`GND` global labels). But there are only 21
+wire segments and **zero signal-net labels** anywhere in the sheet — no I2S
+(WS/BCLK/DOUT) or I2C (SDA/SCL) connections exist between the ESP32 and any
+peripheral yet, so there is nothing to cross-check against the firmware pin
+table above. That work hasn't been started, not just unverified.
+
+Two component-count mismatches vs. what the firmware architecture expects,
+also worth resolving before wiring:
+- **Only 1× DRV2605LDGS (U3) is placed**, but the firmware drives 4
+  independent haptic motors via 4 separate DRV2605 ICs behind a TCA9548A
+  I2C mux (`firmware/echosafe_full_system/echosafe_full_system.ino`).
+  **No TCA9548A symbol exists in the schematic at all.** 3 more driver ICs
+  and the mux need to be added.
+- **Only 1× MAX98357AETE+T (U2) is placed**, with 2 `Device:Speaker`
+  elements (LS1, LS2) wired to it — the firmware's header comment says
+  "2x MAX98357A Speakers (parallel)," which reads as 2 amp ICs. Unclear
+  whether the schematic's "1 amp driving 2 parallel speakers" was the
+  actual intent (electrically plausible if impedance/current headroom
+  allows it) or a second amp IC is still needed — worth confirming before
+  wiring, not after.
 
 ---
 

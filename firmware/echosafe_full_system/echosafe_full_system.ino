@@ -73,10 +73,15 @@
 #define CONFIDENCE_THR     0.65f
 
 // ─── ML MIC CHANNEL ──────────────────────────────────────────────────────────
-// ONLY_LEFT  = TL mic (SEL→GND) — use this once TL hardware is fixed
-// ONLY_RIGHT = TR mic (SEL→3V)  — use this while TL shows 0.0000 RMS
+// ONLY_LEFT  = TL mic (SEL→GND) — switch back to this once TL hardware is fixed
+// ONLY_RIGHT = TR mic (SEL→3V)  — in use while TL shows 0.0000 RMS
 // IMPORTANT: retrain the model after swapping channels for best accuracy.
-#define ML_MIC_CHANNEL     I2S_CHANNEL_FMT_ONLY_LEFT
+// NOTE: model_weights.h was trained on audio from the single-mic reference
+// rig (echosafe_feature_collector.ino, GPIO 5/6/7), not from either TL or TR
+// on this board's mic array — switching this define does not by itself
+// resolve that mismatch. Retraining on audio captured from whichever channel
+// is actually used here is the real fix, not just a channel flip.
+#define ML_MIC_CHANNEL     I2S_CHANNEL_FMT_ONLY_RIGHT
 
 // ─── ENERGY-TRIGGERED CAPTURE ────────────────────────────────────────────────
 // Inference window starts on the first frame whose RMS exceeds this value.
