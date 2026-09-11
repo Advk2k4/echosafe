@@ -56,9 +56,15 @@ left out.
 - **No PCB has ever been laid out or fabricated** for RevA — the KiCad
   `.kicad_pcb` file is empty. Any physical bring-up needs a breadboard/
   dev-kit setup, not an assembled board.
-- **RevA schematic vs. firmware pin mapping has not been cross-checked
-  at the signal level** — no I2S/I2C nets exist in the schematic to check
-  against (only 21 wire segments total, all power-rail). Still open.
+- **(Fixed 2026-09-11)** RevA schematic had no signal-level wiring at all.
+  Added all I2S (2× mic pairs + speaker), I2C (mux + 4 haptic drivers),
+  motor-output, and relevant power/enable nets via global labels (matching
+  the sheet's existing power-rail label convention). See CLAUDE.md's
+  hardware section for the full list of judgment calls made along the way
+  (mic/motor quadrant assignment, which 3.3V rail each IC uses, how unused
+  pins were tied) — none of these were specified anywhere and should be
+  checked against actual intent before layout. One open gap: DRV2605 REG
+  decoupling caps (4×) were not added — flagged rather than guessed.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8

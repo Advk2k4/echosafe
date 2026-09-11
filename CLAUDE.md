@@ -290,13 +290,65 @@ this session. Works fine for what's placed; a real `Driver_Haptic.kicad_sym`
 would be needed to place further instances from the Symbol Library browser
 in KiCad itself.
 
+**Signal wiring added (2026-09-11)**, using global labels (matching this
+sheet's existing power-rail convention) rather than point-to-point wires,
+since components are spread across the sheet. Every net below is a set of
+same-named `global_label`s placed directly at each pin's connection point —
+no drawn wire segments needed for correctness, this is standard KiCad
+practice. Verified after insertion: whole-file parenthesis balance intact,
+381 unique UUIDs (no duplicates), no two different net names sharing a
+coordinate.
+
+**Judgment calls made that you should verify against actual physical
+intent** — none of this was encoded anywhere in the existing schematic, so
+these are assumptions, not verified facts:
+- **MIC1=Top-Left, MIC2=Top-Right, MIC3=Bottom-Left, MIC4=Bottom-Right.**
+  The schematic gave no positional/naming hint about which placed mic
+  instance is physically which quadrant — this is a straightforward
+  numeric-order assignment. **This must match actual PCB placement later,
+  or the TDOA direction math will be wired to the wrong physical corners.**
+- **M1=Top-Left, M2=Top-Right, M3=Bottom-Left, M4=Bottom-Right** motors,
+  same caveat.
+- Driver-to-channel mapping follows the firmware's own TCA9548A channel
+  table: channel 0→U3 (TL), 1→U6 (TR), 2→U7 (BL), 3→U8 (BR).
+- **Rail assignments** (not specified anywhere, inferred from the
+  schematic's own existing rail names): DRV2605 (×4) and TCA9548A power/
+  enable pins → `3V3_SYS` (digital/logic rail, both ICs need ≥2.0V, ruling
+  out the 1.8V `1V8_MIC` rail); MAX98357A power/enable → `3V3_AUDIO`
+  (matches the schematic's own audio-vs-system rail split); mic VDD and
+  mic SEL-high (TR/BR) → `1V8_MIC` (overrides the firmware comment's
+  generic "SEL→3V3" — the schematic's own dedicated mic rail is 1.8V, and
+  driving a logic pin above its own VDD is bad practice, so `1V8_MIC` is
+  the more correct target here than a 3.3V rail).
+- **TCA9548A address pins A0/A1/A2 → GND** (address 0x70, per firmware's
+  `TCA_ADDR`). **RESET → `3V3_SYS` directly** — datasheet recommends a
+  pull-up resistor rather than a direct tie; direct tie was used here as a
+  simplification since firmware never asserts a hardware reset on this
+  line. Add a resistor if you want to match the datasheet exactly.
+- **DRV2605 IN/TRIG → GND** (firmware uses `DRV2605_MODE_INTTRIG` via I2C,
+  so this pin's physical state doesn't matter functionally, but leaving a
+  digital input floating is bad practice).
+- **DRV2605 EN → `3V3_SYS`** (always-enabled; firmware has no hardware
+  enable/disable control for haptics).
+
+**Known gap, not yet resolved:** each DRV2605's **REG pin (pin 1) is left
+unconnected** — per datasheet this needs a decoupling capacitor to GND for
+correct regulator operation. No new passive component was added for this;
+adding one means picking a value/footprint, which felt like a decision
+worth flagging rather than guessing silently. 4× 0.1µF caps (one per
+DRV2605) is the standard datasheet-recommended starting point.
+
 **Still needed before this can go to PCB layout:**
-1. Wire the actual I2S/I2C signal nets — the biggest remaining gap.
+1. ~~Wire the actual I2S/I2C signal nets~~ — done, see above. Add the
+   4× REG decoupling caps (see gap above) before layout.
 2. Decide whether "1 MAX98357A driving 2 parallel speakers" (what's
-   currently placed: 1× U2 + 2× `Device:Speaker`) matches intent, or a
-   second amp IC is needed — the firmware header comment says "2x
-   MAX98357A," which reads as 2 ICs.
-3. PCB layout itself (still 0 footprints placed, 0 traces routed).
+   currently placed: 1× U2 + 2× `Device:Speaker`, now wired that way —
+   `SPK_OUTP`/`SPK_OUTN` both drive LS1 and LS2 in parallel) matches
+   intent, or a second amp IC is needed — the firmware header comment says
+   "2x MAX98357A," which reads as 2 ICs.
+3. Verify the MIC/motor quadrant assignments above against actual intended
+   PCB placement before routing.
+4. PCB layout itself (still 0 footprints placed, 0 traces routed).
 
 ---
 
