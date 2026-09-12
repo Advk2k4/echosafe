@@ -7706,7 +7706,7 @@
 			)
 		)
 	)
-	(global_label "MOTOR_BL_OUTP"
+	(global_label "MOTOR_BR_OUTP"
 		(shape bidirectional)
 		(at 82.55 34.29 0)
 		(fields_autoplaced yes)
@@ -7750,7 +7750,7 @@
 			)
 		)
 	)
-	(global_label "MOTOR_BL_OUTN"
+	(global_label "MOTOR_BR_OUTN"
 		(shape bidirectional)
 		(at 82.55 29.21 0)
 		(fields_autoplaced yes)
@@ -7794,7 +7794,7 @@
 			)
 		)
 	)
-	(global_label "MOTOR_BR_OUTP"
+	(global_label "MOTOR_BL_OUTP"
 		(shape bidirectional)
 		(at 82.55 78.74 0)
 		(fields_autoplaced yes)
@@ -7838,7 +7838,7 @@
 			)
 		)
 	)
-	(global_label "MOTOR_BR_OUTN"
+	(global_label "MOTOR_BL_OUTN"
 		(shape bidirectional)
 		(at 82.55 73.66 0)
 		(fields_autoplaced yes)
@@ -8124,7 +8124,7 @@
 			)
 		)
 	)
-	(global_label "GND"
+	(global_label "1V8_MIC"
 		(shape bidirectional)
 		(at 95.25 144.78 0)
 		(fields_autoplaced yes)
@@ -8190,7 +8190,7 @@
 			)
 		)
 	)
-	(global_label "1V8_MIC"
+	(global_label "GND"
 		(shape bidirectional)
 		(at 95.25 167.64 0)
 		(fields_autoplaced yes)
@@ -8987,6 +8987,414 @@
 	(no_connect (at 80.01 104.14) (uuid "f0a06def-7fae-4f86-b569-3209499f2649"))
 	(no_connect (at 80.01 101.6) (uuid "08d6c9c1-a3e6-4bc8-aca9-0345cf2f5cb3"))
 	(no_connect (at 80.01 99.06) (uuid "5c989a09-f822-40b4-898f-db9983eb7386"))
+	(symbol
+		(lib_id "Device:C")
+		(at 195.42 111.76 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1c609c19-b5b4-4a13-9d31-df95a8942e87")
+		(property "Reference" "C6"
+			(at 199.23 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 199.23 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 195.42 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 195.42 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Description" "Decoupling capacitor for DRV2605L REG pin (datasheet-recommended)"
+			(at 195.42 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "b5c2b4cb-2562-49e8-8833-6bd2405720c5")
+		)
+		(pin "1"
+			(uuid "892176b1-aa7a-46fd-a40f-edeff57d49f9")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 185.42 115.57) (xy 195.42 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2a97b426-653d-4a00-a07a-779a0933a21a")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 195.42 107.95 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0be3fed4-13b1-48e2-a4fe-7b4d08516fd4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200.42 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 277.7 31.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "47bc8eb8-a719-416c-a9ee-788e22c21012")
+		(property "Reference" "C7"
+			(at 281.51 29.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 281.51 32.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 277.7 31.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 277.7 31.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Description" "Decoupling capacitor for DRV2605L REG pin (datasheet-recommended)"
+			(at 277.7 31.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "00f03697-c159-4c4d-bb81-66da83b27308")
+		)
+		(pin "1"
+			(uuid "cb326f9b-0973-441a-8229-87933d1d56b5")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 267.7 34.92) (xy 277.7 34.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "906aa56a-9043-4736-a90c-6b91b0e873ed")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 277.7 27.3 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b8958af6-1b8b-4109-a230-5b3367839be3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 282.7 27.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 277.7 66.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7483d784-5fa7-4975-9b8e-b1e6596430dd")
+		(property "Reference" "C8"
+			(at 281.51 64.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 281.51 67.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 277.7 66.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 277.7 66.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Description" "Decoupling capacitor for DRV2605L REG pin (datasheet-recommended)"
+			(at 277.7 66.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "d9267d2b-0ab5-4b70-9bdd-27c78e071411")
+		)
+		(pin "1"
+			(uuid "f85e9edd-f6c1-4a57-ba18-7586faeb7127")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 267.7 69.92) (xy 277.7 69.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5d8339b9-a080-4924-b8c2-b4ed017eb167")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 277.7 62.3 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a57de68e-bf3a-4533-aac2-633a7e5516f5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 282.7 62.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 277.7 101.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "542ba68d-e0da-4b82-a141-7ca74fb96136")
+		(property "Reference" "C9"
+			(at 281.51 99.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 281.51 102.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 277.7 101.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 277.7 101.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Description" "Decoupling capacitor for DRV2605L REG pin (datasheet-recommended)"
+			(at 277.7 101.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "82dd6dfe-ba78-4d55-9dee-ab39a7dd6fca")
+		)
+		(pin "1"
+			(uuid "c91d0440-cd08-44b7-bbd7-d3bf9e3ab313")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 267.7 104.92) (xy 277.7 104.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d676d907-86d5-4f58-bf32-162f8a9ca87a")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 277.7 97.3 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f125ee49-214b-4104-a854-b0d692974e45")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 282.7 97.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")

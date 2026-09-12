@@ -301,16 +301,25 @@ coordinate.
 
 **Judgment calls made that you should verify against actual physical
 intent** — none of this was encoded anywhere in the existing schematic, so
-these are assumptions, not verified facts:
-- **MIC1=Top-Left, MIC2=Top-Right, MIC3=Bottom-Left, MIC4=Bottom-Right.**
-  The schematic gave no positional/naming hint about which placed mic
-  instance is physically which quadrant — this is a straightforward
-  numeric-order assignment. **This must match actual PCB placement later,
-  or the TDOA direction math will be wired to the wrong physical corners.**
-- **M1=Top-Left, M2=Top-Right, M3=Bottom-Left, M4=Bottom-Right** motors,
-  same caveat.
-- Driver-to-channel mapping follows the firmware's own TCA9548A channel
-  table: channel 0→U3 (TL), 1→U6 (TR), 2→U7 (BL), 3→U8 (BR).
+these were assumptions, not verified facts, until confirmed:
+
+- **MIC1=Top-Left, MIC2=Top-Right, MIC3=Bottom-Right, MIC4=Bottom-Left**
+  (clockwise, confirmed 2026-09-11). The schematic gave no positional/
+  naming hint about which placed mic instance is physically which
+  quadrant — this ordering was confirmed against actual intended physical
+  layout. MIC3's SEL pin → `1V8_MIC` (right channel, it's Bottom-Right)
+  and MIC4's SEL pin → `GND` (left channel, it's Bottom-Left) — the
+  reverse of the original guess, corrected once the real layout was known.
+- **M1=Top-Left, M2=Top-Right, M3=Bottom-Right, M4=Bottom-Left** motors,
+  same clockwise convention applied for consistency with the mics.
+- Driver-to-channel mapping follows the firmware's own fixed TCA9548A
+  channel table (channel 0=Top-Left, 1=Top-Right, 2=Bottom-Left, 3=
+  Bottom-Right) — U3 stays on channel 0 (TL), U6 on channel 1 (TR), but
+  since M3/M4 turned out to be swapped from the initial guess, **U7
+  (channel 2, "Bottom-Left") now drives M4** and **U8 (channel 3,
+  "Bottom-Right") now drives M3** — the driver-to-channel assignment
+  didn't change, only which physical motor each driver's OUTP/OUTN
+  connects to.
 - **Rail assignments** (not specified anywhere, inferred from the
   schematic's own existing rail names): DRV2605 (×4) and TCA9548A power/
   enable pins → `3V3_SYS` (digital/logic rail, both ICs need ≥2.0V, ruling
@@ -331,24 +340,41 @@ these are assumptions, not verified facts:
 - **DRV2605 EN → `3V3_SYS`** (always-enabled; firmware has no hardware
   enable/disable control for haptics).
 
-**Known gap, not yet resolved:** each DRV2605's **REG pin (pin 1) is left
-unconnected** — per datasheet this needs a decoupling capacitor to GND for
-correct regulator operation. No new passive component was added for this;
-adding one means picking a value/footprint, which felt like a decision
-worth flagging rather than guessing silently. 4× 0.1µF caps (one per
-DRV2605) is the standard datasheet-recommended starting point.
+**REG decoupling caps added (2026-09-11):** C6/C7/C8/C9 (0.1µF, the
+datasheet-recommended value), one per DRV2605 (U3/U6/U7/U8), each wired
+with a short direct wire from the DRV2605's REG pin (pin 1) to the cap,
+and the cap's other terminal tied to `GND`. Footprint left unassigned
+(`""`) — same as every other passive in this schematic, none have
+footprints picked yet.
+
+**Speaker architecture (1 amp vs. 2, decided 2026-09-11):** keeping the
+current design — 1× MAX98357A driving both speakers (LS1, LS2) in
+parallel off the same `SPK_OUTP`/`SPK_OUTN` net — rather than adding a
+second amp IC. Reasoning: both speakers only ever need to play the same
+mono alert content (no independent/stereo audio requirement), so a second
+amp buys nothing functionally; it would cost board area, BOM cost, and
+idle quiescent current, all of which matter more for a battery-powered
+wearable than they would for a mains-powered product. The real constraint
+is electrical: MAX98357A is only rated for ≥ ~4Ω BTL load, and two
+speakers in parallel add their impedances in parallel — **this only stays
+safe if each speaker is 8Ω** (giving 4Ω combined). If the speakers already
+chosen/available are 4Ω each, parallel wiring drops to ~2Ω, which is
+out of the amp's safe operating range (risk of thermal shutdown, reduced
+headroom, or long-term amp stress under sustained loud output) — in that
+case, either swap to two 8Ω speakers or fall back to a second MAX98357A
+(each driving one 4Ω speaker independently; a second amp can still listen
+to the same shared `SPK_DIN`/`SPK_BCLK`/`SPK_LRCLK` I2S lines from the
+ESP32, since I2S is a broadcast bus — no second I2S peripheral needed).
+**Action item: confirm actual speaker impedance before finalizing.**
 
 **Still needed before this can go to PCB layout:**
-1. ~~Wire the actual I2S/I2C signal nets~~ — done, see above. Add the
-   4× REG decoupling caps (see gap above) before layout.
-2. Decide whether "1 MAX98357A driving 2 parallel speakers" (what's
-   currently placed: 1× U2 + 2× `Device:Speaker`, now wired that way —
-   `SPK_OUTP`/`SPK_OUTN` both drive LS1 and LS2 in parallel) matches
-   intent, or a second amp IC is needed — the firmware header comment says
-   "2x MAX98357A," which reads as 2 ICs.
-3. Verify the MIC/motor quadrant assignments above against actual intended
-   PCB placement before routing.
-4. PCB layout itself (still 0 footprints placed, 0 traces routed).
+1. ~~Wire the actual I2S/I2C signal nets~~ — done.
+2. ~~REG decoupling caps~~ — done.
+3. ~~Resolve 1-amp-vs-2-amp~~ — decided: 1 amp, pending speaker impedance
+   confirmation (see above).
+4. ~~Verify MIC/motor quadrant assignments~~ — confirmed clockwise, wiring
+   corrected to match.
+5. PCB layout itself (still 0 footprints placed, 0 traces routed).
 
 ---
 

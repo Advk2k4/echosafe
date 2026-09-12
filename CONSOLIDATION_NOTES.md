@@ -59,12 +59,18 @@ left out.
 - **(Fixed 2026-09-11)** RevA schematic had no signal-level wiring at all.
   Added all I2S (2× mic pairs + speaker), I2C (mux + 4 haptic drivers),
   motor-output, and relevant power/enable nets via global labels (matching
-  the sheet's existing power-rail label convention). See CLAUDE.md's
-  hardware section for the full list of judgment calls made along the way
-  (mic/motor quadrant assignment, which 3.3V rail each IC uses, how unused
-  pins were tied) — none of these were specified anywhere and should be
-  checked against actual intent before layout. One open gap: DRV2605 REG
-  decoupling caps (4×) were not added — flagged rather than guessed.
+  the sheet's existing power-rail label convention). Initial mic/motor
+  quadrant assignment was a guess (numeric order); confirmed with the user
+  same day as clockwise (MIC1/M1=TL, MIC2/M2=TR, MIC3/M3=BR, MIC4/M4=BL)
+  and the wiring corrected to match — see CLAUDE.md's hardware section for
+  full details of what changed and why.
+- **(Fixed 2026-09-11)** Added C6-C9 (0.1µF decoupling caps) for each
+  DRV2605's REG pin, per datasheet recommendation.
+- **(Decided 2026-09-11)** Speaker architecture: keeping 1× MAX98357A
+  driving both speakers in parallel rather than adding a second amp IC —
+  see CLAUDE.md for the reasoning and the speaker-impedance caveat
+  (needs 8Ω speakers for the parallel combination to stay in the amp's
+  safe operating range).
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8
