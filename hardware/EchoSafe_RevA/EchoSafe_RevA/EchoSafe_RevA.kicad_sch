@@ -1371,6 +1371,102 @@
 				)
 			)
 		)
+		(symbol "Connector:USB_C_Power_Only"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at -7.62 9.906 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "USB_C_Power_Only"
+				(at -7.62 -9.906 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Simplified USB-C receptacle, power/charging signals only (VBUS, GND, CC1, CC2, SHIELD) -- placeholder pending an actual connector part number; real part will have more mechanical/shield pins tied to the same nets"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "USB_C_Power_Only_0_1"
+				(rectangle
+					(start -5.08 7.62)
+					(end 5.08 -7.62)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "USB_C_Power_Only_1_1"
+				(pin power_in line
+					(at -7.62 5.08 0)
+					(length 2.54)
+					(name "VBUS" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27))))
+				)
+				(pin power_in line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "GND" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "CC1" (effects (font (size 1.27 1.27))))
+					(number "3" (effects (font (size 1.27 1.27))))
+				)
+				(pin bidirectional line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "CC2" (effects (font (size 1.27 1.27))))
+					(number "4" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -5.08 0)
+					(length 2.54)
+					(name "SHIELD" (effects (font (size 1.27 1.27))))
+					(number "5" (effects (font (size 1.27 1.27))))
+				)
+			)
+		)
 		(symbol "ESP-32:ESP32-S3-WROOM-1-N16R8"
 			(pin_names
 				(offset 0.254)
@@ -9386,6 +9482,262 @@
 		(uuid "f125ee49-214b-4104-a854-b0d692974e45")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 282.7 97.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:USB_C_Power_Only")
+		(at 228 10 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "25c835ae-ac7a-455e-b18f-4e376b7341f0")
+		(property "Reference" "J1"
+			(at 220.38 19.906 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Value" "USB_C_Power_Only"
+			(at 220.38 0.094 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 228 10 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 228 10 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(property "Description" "Placeholder USB-C power/charging connector -- pick real part + footprint before layout"
+			(at 228 10 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5dec86c3-5947-4b26-95f9-63914861db5f")
+		)
+		(pin "2"
+			(uuid "88238d97-555e-4d20-a0c7-194dbb03bf75")
+		)
+		(pin "3"
+			(uuid "3d5f4978-2bb6-4cd6-8491-1edfe44fc997")
+		)
+		(pin "4"
+			(uuid "7fa874b7-3fb2-4b8a-83b8-cf135071ebb0")
+		)
+		(pin "5"
+			(uuid "4c7250ae-1392-4863-8d6f-dc7da528297e")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "USB_VBUS"
+		(shape input)
+		(at 207.01 2.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cb103460-51f8-4361-aaa1-c4f45fd1d839")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 212.01 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "USB_VBUS"
+		(shape output)
+		(at 220.38 15.08 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8a70f0a5-16be-4baf-be55-13336629769c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 225.38 15.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "USB_CC1"
+		(shape bidirectional)
+		(at 207.01 7.62 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "c4302c30-e997-453e-9960-40a383861b9d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 212.01 7.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "USB_CC1"
+		(shape bidirectional)
+		(at 220.38 10 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e96b0b95-684c-45c3-8db5-021071432c41")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 225.38 10 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "USB_CC2"
+		(shape bidirectional)
+		(at 207.01 10.16 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3e7686df-6d15-42b5-a11a-eb3409aa890a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 212.01 10.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "USB_CC2"
+		(shape bidirectional)
+		(at 220.38 7.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "22c5442f-9550-4ab3-97ea-cf93139a4479")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 225.38 7.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 220.38 12.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "02818882-5321-44d3-bbbe-47ddba58973e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 225.38 12.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 220.38 4.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "47a12923-2705-4420-acce-ba9d030b34af")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 225.38 4.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)

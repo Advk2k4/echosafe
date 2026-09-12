@@ -367,14 +367,53 @@ to the same shared `SPK_DIN`/`SPK_BCLK`/`SPK_LRCLK` I2S lines from the
 ESP32, since I2S is a broadcast bus — no second I2S peripheral needed).
 **Action item: confirm actual speaker impedance before finalizing.**
 
+**Speaker impedance confirmed (2026-09-11): speakers are 8Ω.** With
+2× 8Ω in parallel = 4Ω, the single-MAX98357A design is within its rated
+load — no change needed, decision above stands as final, not conditional.
+
+**USB-C charging port added (2026-09-11):** J1, a simplified placeholder
+connector (`Connector:USB_C_Power_Only`, embedded in this schematic — no
+real USB-C part number chosen yet, so no footprint either, same "decide
+later" treatment as every other undecided passive here). Exposes exactly
+the signals a charge-only USB-C port needs: `VBUS`, `GND`, `CC1`, `CC2`,
+plus a `SHIELD` pin tied to `GND`. Wired directly to the NPM1300 PMIC's
+own dedicated `VBUS`/`CC1`/`CC2` pins (pins 21/23/24) — **no external CC
+pull-down resistors were added**, because the nPM1300 has its own built-in
+USB-C/BC1.2 current-advertisement detection on those exact pins per its
+standard application circuit; adding external pull-downs on top would be
+redundant/wrong for this specific PMIC (it would be *necessary* for a
+simpler charger IC without integrated CC detection, but not this one).
+**This one is based on general knowledge of the nPM1300 family's
+published reference design, not a datasheet PDF fetched during this
+session** (unlike the TCA9548A pinout, which was) — worth a quick check
+against Nordic's actual nPM1300 datasheet before finalizing if you want
+that same level of verification.
+
+No physical power switch or user-facing button were added — confirmed
+these aren't part of this design (only the mechanical concept image
+suggested them, and that image was explicitly disregarded as outdated).
+
+**Note on the two reference images checked during this session:**
+`EchoSafe_v1_mech_layout.png` is outdated/disregarded per your feedback.
+`EchoSafe.png` (Shokz-style render) is close to the intended final look,
+**except this design has no separate in-ear buds** — the two speakers
+(LS1/LS2) mount inside the behind-ear housings themselves, not on a
+separate earbud cable.
+
 **Still needed before this can go to PCB layout:**
 1. ~~Wire the actual I2S/I2C signal nets~~ — done.
 2. ~~REG decoupling caps~~ — done.
-3. ~~Resolve 1-amp-vs-2-amp~~ — decided: 1 amp, pending speaker impedance
-   confirmation (see above).
-4. ~~Verify MIC/motor quadrant assignments~~ — confirmed clockwise, wiring
-   corrected to match.
-5. PCB layout itself (still 0 footprints placed, 0 traces routed).
+3. ~~Resolve 1-amp-vs-2-amp~~ — done, confirmed final with 8Ω speakers.
+4. ~~Verify MIC/motor quadrant assignments~~ — done.
+5. ~~Add USB-C charging~~ — done (placeholder part, see above).
+6. Pick real part numbers + footprints for every passive/connector left
+   with an empty `Footprint` field (C1-C9, J1, LS1/LS2, BT1) before layout
+   can actually begin.
+7. Define how this splits across physical boards — the product is a
+   multi-enclosure headset (left earpiece / right earpiece / central
+   pod), not one monolithic board; this schematic doesn't yet capture
+   that partition.
+8. PCB layout itself (still 0 footprints placed, 0 traces routed).
 
 ---
 

@@ -66,11 +66,17 @@ left out.
   full details of what changed and why.
 - **(Fixed 2026-09-11)** Added C6-C9 (0.1µF decoupling caps) for each
   DRV2605's REG pin, per datasheet recommendation.
-- **(Decided 2026-09-11)** Speaker architecture: keeping 1× MAX98357A
-  driving both speakers in parallel rather than adding a second amp IC —
-  see CLAUDE.md for the reasoning and the speaker-impedance caveat
-  (needs 8Ω speakers for the parallel combination to stay in the amp's
-  safe operating range).
+- **(Decided 2026-09-11, confirmed final)** Speaker architecture: 1×
+  MAX98357A driving both 8Ω speakers in parallel (4Ω combined, within
+  spec) — no second amp needed.
+- **(Added 2026-09-11)** J1, placeholder USB-C charging connector, wired
+  to the NPM1300 PMIC's native VBUS/CC1/CC2 pins (no external CC resistors
+  — the PMIC has built-in USB-C detection). No power switch or button
+  added — confirmed out of scope for this design.
+- **(Clarified 2026-09-11)** `EchoSafe_v1_mech_layout.png` is outdated,
+  disregard it. `EchoSafe.png` is the actual target look, minus the
+  in-ear-bud cable shown in that render — speakers mount in the behind-
+  ear housings instead.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8
