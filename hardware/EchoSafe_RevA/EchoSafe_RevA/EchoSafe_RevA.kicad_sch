@@ -1484,6 +1484,172 @@
 				)
 			)
 		)
+		(symbol "Connector:Conn_Harness_09"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at -5.08 12.7 0)
+				(effects (font (size 1.27 1.27)) (justify left))
+			)
+			(property "Value" "Conn_Harness_09"
+				(at -5.08 -12.7 0)
+				(effects (font (size 1.27 1.27)) (justify left))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27)) (hide yes))
+			)
+			(property "Description" "Generic 9-pin wire harness connector -- placeholder pending real connector part/footprint selection"
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27)) (hide yes))
+			)
+			(symbol "Conn_Harness_09_0_1"
+				(rectangle
+					(start -5.08 12.7)
+					(end 5.08 -12.7)
+					(stroke (width 0.254) (type default))
+					(fill (type background))
+				)
+			)
+			(symbol "Conn_Harness_09_1_1"
+				(pin passive line
+					(at -7.62 10.16 0)
+					(length 2.54)
+					(name "P1" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 7.62 0)
+					(length 2.54)
+					(name "P2" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 5.08 0)
+					(length 2.54)
+					(name "P3" (effects (font (size 1.27 1.27))))
+					(number "3" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "P4" (effects (font (size 1.27 1.27))))
+					(number "4" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "P5" (effects (font (size 1.27 1.27))))
+					(number "5" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "P6" (effects (font (size 1.27 1.27))))
+					(number "6" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -5.08 0)
+					(length 2.54)
+					(name "P7" (effects (font (size 1.27 1.27))))
+					(number "7" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -7.62 0)
+					(length 2.54)
+					(name "P8" (effects (font (size 1.27 1.27))))
+					(number "8" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -10.16 0)
+					(length 2.54)
+					(name "P9" (effects (font (size 1.27 1.27))))
+					(number "9" (effects (font (size 1.27 1.27))))
+				)
+			)
+		)
+		(symbol "Connector:Conn_Harness_07"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at -5.08 10.16 0)
+				(effects (font (size 1.27 1.27)) (justify left))
+			)
+			(property "Value" "Conn_Harness_07"
+				(at -5.08 -10.16 0)
+				(effects (font (size 1.27 1.27)) (justify left))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27)) (hide yes))
+			)
+			(property "Description" "Generic 7-pin wire harness connector -- placeholder pending real connector part/footprint selection"
+				(at 0 0 0)
+				(effects (font (size 1.27 1.27)) (hide yes))
+			)
+			(symbol "Conn_Harness_07_0_1"
+				(rectangle
+					(start -5.08 10.16)
+					(end 5.08 -10.16)
+					(stroke (width 0.254) (type default))
+					(fill (type background))
+				)
+			)
+			(symbol "Conn_Harness_07_1_1"
+				(pin passive line
+					(at -7.62 7.62 0)
+					(length 2.54)
+					(name "P1" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 5.08 0)
+					(length 2.54)
+					(name "P2" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "P3" (effects (font (size 1.27 1.27))))
+					(number "3" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "P4" (effects (font (size 1.27 1.27))))
+					(number "4" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "P5" (effects (font (size 1.27 1.27))))
+					(number "5" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -5.08 0)
+					(length 2.54)
+					(name "P6" (effects (font (size 1.27 1.27))))
+					(number "6" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive line
+					(at -7.62 -7.62 0)
+					(length 2.54)
+					(name "P7" (effects (font (size 1.27 1.27))))
+					(number "7" (effects (font (size 1.27 1.27))))
+				)
+			)
+		)
 		(symbol "ESP-32:ESP32-S3-WROOM-1-N16R8"
 			(pin_names
 				(offset 0.254)
@@ -9728,6 +9894,962 @@
 		(uuid "962e72f4-1c7a-4e07-baa0-2c6286442d12")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 175 66.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_Harness_09")
+		(at 30 195 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7bf6cee6-ea5a-40a4-9ba8-12304529c0f0")
+		(property "Reference" "J2"
+			(at 24.92 207.7 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Value" "Conn_Harness_09"
+			(at 24.92 182.3 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Footprint" ""
+			(at 30 195 0)
+			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" ""
+			(at 30 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "Wire harness connector -- placeholder pending real part/footprint"
+			(at 30 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(pin "1"
+			(uuid "4c9f9b72-de40-4aab-b6e3-393ac2716949")
+		)
+		(pin "2"
+			(uuid "44251a5f-2bbc-4df2-92ac-d431974bab64")
+		)
+		(pin "3"
+			(uuid "232b1f90-2e61-4fdc-bf64-8cd14602f244")
+		)
+		(pin "4"
+			(uuid "e3fb7896-9ccd-4a87-815a-c7a2af2430b3")
+		)
+		(pin "5"
+			(uuid "a21c0c52-ef74-46fe-b8d3-3c9a8a1464a0")
+		)
+		(pin "6"
+			(uuid "827d2d9c-e60b-4243-9442-cf81d875dabb")
+		)
+		(pin "7"
+			(uuid "199f261b-0090-46d2-8c2d-768633daa829")
+		)
+		(pin "8"
+			(uuid "5f06d76a-7ef5-4b8c-b16d-9f5217aa587d")
+		)
+		(pin "9"
+			(uuid "89ebb07e-4eb1-4886-bfa0-64c4a246bc7d")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "MIC_TOP_WS"
+		(shape bidirectional)
+		(at 22.38 205.16 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5df216ed-f07c-441a-a037-087d130bbd97")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 205.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_TOP_SCK"
+		(shape bidirectional)
+		(at 22.38 202.62 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "064520c6-7d66-489a-b14f-e477dd334bb2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 202.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_TOP_SD"
+		(shape bidirectional)
+		(at 22.38 200.08 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5d480d8a-75aa-4931-8643-394df2385dfc")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 200.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "3V3_SYS"
+		(shape bidirectional)
+		(at 22.38 197.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2780e098-b184-4ae5-a956-bc2179562187")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 197.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 22.38 195 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "fe8c26e3-6e34-4450-a302-3b8692e5f61a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 195 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_TL_OUTP"
+		(shape bidirectional)
+		(at 22.38 192.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8ff319b5-2b2b-4320-8e60-5be78615f359")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 192.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_TL_OUTN"
+		(shape bidirectional)
+		(at 22.38 189.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2c256353-ee07-4b81-8c09-690709b26de6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 189.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SPK_OUTP"
+		(shape bidirectional)
+		(at 22.38 187.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "91818ca9-8952-462a-b52a-30855b823dcd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 187.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SPK_OUTN"
+		(shape bidirectional)
+		(at 22.38 184.84 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0613605f-9edd-456f-9359-92455d9bd7b5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 27.38 184.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_Harness_09")
+		(at 70 195 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a0eda6a7-45e4-4617-8260-4d14a428928c")
+		(property "Reference" "J3"
+			(at 64.92 207.7 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Value" "Conn_Harness_09"
+			(at 64.92 182.3 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Footprint" ""
+			(at 70 195 0)
+			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" ""
+			(at 70 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "Wire harness connector -- placeholder pending real part/footprint"
+			(at 70 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(pin "1"
+			(uuid "23070e70-ee42-459a-a111-f8ca383dab14")
+		)
+		(pin "2"
+			(uuid "aa6c77ec-130e-4d74-a08f-7f815c9ae36f")
+		)
+		(pin "3"
+			(uuid "e9c27868-7a15-4d27-a7f8-0eb66075bb03")
+		)
+		(pin "4"
+			(uuid "a93cc920-9bb8-47e7-9028-8e0e52ede185")
+		)
+		(pin "5"
+			(uuid "86791dd9-a8bc-423a-ac5a-ec303a8c26c9")
+		)
+		(pin "6"
+			(uuid "8f24a896-19db-4da2-afd1-cae84b280ca2")
+		)
+		(pin "7"
+			(uuid "3d4cbdd6-7f16-42be-b0ec-999d1141fd8f")
+		)
+		(pin "8"
+			(uuid "09c5cf2c-5242-4ed0-b02f-793512722a63")
+		)
+		(pin "9"
+			(uuid "4659fd84-6e9a-4a30-a148-1e451f17129d")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "MIC_TOP_WS"
+		(shape bidirectional)
+		(at 62.38 205.16 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f6ac873a-a83d-42c5-9a83-a0a799a06885")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 205.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_TOP_SCK"
+		(shape bidirectional)
+		(at 62.38 202.62 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "89e462db-eac5-4c31-9a46-784efcbf9e90")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 202.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_TOP_SD"
+		(shape bidirectional)
+		(at 62.38 200.08 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cb8dab3b-c67e-4db9-bebb-8a6de67ae971")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 200.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "3V3_SYS"
+		(shape bidirectional)
+		(at 62.38 197.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b2b31adf-72f4-441a-9a7d-2355be495768")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 197.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 62.38 195 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ee874b30-f0ae-4830-9c9e-0a44a4f76327")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 195 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_TR_OUTP"
+		(shape bidirectional)
+		(at 62.38 192.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3f59d490-ac54-4470-b64f-1c24600246f0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 192.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_TR_OUTN"
+		(shape bidirectional)
+		(at 62.38 189.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2cb0e847-c2f2-46a3-a0be-f15fdd7d9158")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 189.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SPK_OUTP"
+		(shape bidirectional)
+		(at 62.38 187.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b7940153-fb46-4415-a2f5-9473b755f4f1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 187.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SPK_OUTN"
+		(shape bidirectional)
+		(at 62.38 184.84 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "15011d02-b5e0-4c35-9078-4f9ff828b41b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 67.38 184.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_Harness_07")
+		(at 110 195 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "025dcad7-6ee2-4b7d-a1f2-6ee875eefa95")
+		(property "Reference" "J4"
+			(at 104.92 205.16 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Value" "Conn_Harness_07"
+			(at 104.92 184.84 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Footprint" ""
+			(at 110 195 0)
+			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" ""
+			(at 110 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "Wire harness connector -- placeholder pending real part/footprint"
+			(at 110 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(pin "1"
+			(uuid "1b3a3253-6b2d-49bc-908b-401b45848f13")
+		)
+		(pin "2"
+			(uuid "c532d6a2-8a27-4d3f-8c1a-0521adb3722d")
+		)
+		(pin "3"
+			(uuid "0e0d4607-7e9c-4e2f-baa9-90a591e1e7d8")
+		)
+		(pin "4"
+			(uuid "d28f990e-8edf-4cf3-ab1a-2f38cb5c060e")
+		)
+		(pin "5"
+			(uuid "ebb64b14-555e-454a-bcc4-717e667308c6")
+		)
+		(pin "6"
+			(uuid "28f85a0f-2206-4f58-998a-690acbb9d064")
+		)
+		(pin "7"
+			(uuid "2ba34c48-95e7-4b49-8ae6-c2f3c7377d30")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "MIC_BOT_WS"
+		(shape bidirectional)
+		(at 102.38 202.62 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d70c8795-732f-44d0-bebb-299dea18a585")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 202.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_BOT_SCK"
+		(shape bidirectional)
+		(at 102.38 200.08 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d963d645-4742-4464-a229-66d6cc966d2d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 200.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_BOT_SD"
+		(shape bidirectional)
+		(at 102.38 197.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a94124ff-e63d-42fe-a9aa-80ad63644b6c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 197.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "3V3_SYS"
+		(shape bidirectional)
+		(at 102.38 195 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b5e8f751-0279-4768-8449-27d3f5d27e33")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 195 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 102.38 192.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ebba8b57-93c0-4191-9a38-faa6afd3ad46")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 192.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_BL_OUTP"
+		(shape bidirectional)
+		(at 102.38 189.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "c789cfbe-0a63-4e76-8f04-53e15d05c21a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 189.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_BL_OUTN"
+		(shape bidirectional)
+		(at 102.38 187.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "266dded9-6f7e-4717-a0de-7243d30181b7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.38 187.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_Harness_07")
+		(at 250 195 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0d181cec-c055-49e9-a86c-97c89117f03d")
+		(property "Reference" "J5"
+			(at 244.92 205.16 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Value" "Conn_Harness_07"
+			(at 244.92 184.84 0)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Footprint" ""
+			(at 250 195 0)
+			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" ""
+			(at 250 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "Wire harness connector -- placeholder pending real part/footprint"
+			(at 250 195 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(pin "1"
+			(uuid "c99cc37f-3318-4939-a3e6-b1b72f3f27a7")
+		)
+		(pin "2"
+			(uuid "35017f62-744c-421d-9587-d17e9f49ec7e")
+		)
+		(pin "3"
+			(uuid "b4d930a0-8ef1-4c90-8fbf-5083a0c9f4d2")
+		)
+		(pin "4"
+			(uuid "8d32569e-ecdf-4ad3-8270-4a59aabc4576")
+		)
+		(pin "5"
+			(uuid "e5488cef-9daf-407c-add9-a3d16c8661f8")
+		)
+		(pin "6"
+			(uuid "d1bf58b1-6534-4cba-b80a-90da83b8dd33")
+		)
+		(pin "7"
+			(uuid "e4de2643-165c-4385-a093-982236055637")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "J5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "MIC_BOT_WS"
+		(shape bidirectional)
+		(at 242.38 202.62 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "49307114-c855-48a1-84ca-6656883aa62a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 202.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_BOT_SCK"
+		(shape bidirectional)
+		(at 242.38 200.08 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a3fb54da-71c0-4ca2-9fb7-b160fabd3af5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 200.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MIC_BOT_SD"
+		(shape bidirectional)
+		(at 242.38 197.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "242568e5-d9f3-4c53-abea-d260e91986b2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 197.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "3V3_SYS"
+		(shape bidirectional)
+		(at 242.38 195 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cdc85bf7-63d6-4628-9ad5-e4db09d0c85a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 195 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 242.38 192.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4152f0e4-67f6-4f36-a05a-aa8dc1f7fdf7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 192.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_BR_OUTP"
+		(shape bidirectional)
+		(at 242.38 189.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d4216e48-7c3b-416f-b001-4f93bb8af096")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 189.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MOTOR_BR_OUTN"
+		(shape bidirectional)
+		(at 242.38 187.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "73d29360-a2d0-4d90-8e94-1c3bfdea1034")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 247.38 187.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)

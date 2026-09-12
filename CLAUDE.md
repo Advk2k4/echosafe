@@ -467,19 +467,43 @@ separate earbud cable.
    caps also still have empty `Footprint` fields.
 7. ~~Define board partition~~ — confirmed (2026-09-11): **4 small earpiece
    modules + 1 central pod**, not one monolithic board:
-   - Front-Left module: MIC1, M1, LS1 (speaker)
-   - Front-Right module: MIC2, M2, LS2 (speaker)
-   - Rear-Right module: MIC3, M3 (no speaker)
-   - Rear-Left module: MIC4, M4 (no speaker)
+   - Front-Left module: MIC1, M1, LS1 (speaker), + MIC1's own decoupling
+     cap (C9) — travels with the mic, not centralized (decoupling only
+     works if it's physically close to the pin it protects)
+   - Front-Right module: MIC2, M2, LS2 (speaker), + C10
+   - Rear-Right module: MIC3, M3 (no speaker), + C11
+   - Rear-Left module: MIC4, M4 (no speaker), + C12
    - Central pod (everything else): U1 (ESP32), U2 (MAX98357A), U5
      (TCA9548A), U3/U6/U7/U8 (DRV2605 ×4), J1 (TP4056), LD1 (LD1117V33),
-     BT1 (battery), all 17 capacitors
-   This schematic is still captured as one flat sheet — it doesn't yet
-   have separate KiCad hierarchical sheets per module, which real
-   multi-board layout will need (each of the 5 boards gets its own
-   footprint placement; the earpiece↔pod connections become board-edge
-   connectors or a wire harness, not traces).
-8. PCB layout itself (still 0 footprints placed, 0 traces routed) — now
+     BT1 (battery), remaining 13 capacitors (C1-C8, C13-C17)
+   ~~Harness connectors added (2026-09-11)~~ — J2 (Front-Left, 9 pins),
+   J3 (Front-Right, 9 pins), J4 (Rear-Left, 7 pins), J5 (Rear-Right,
+   7 pins). Placeholder generic connectors (`Connector:Conn_Harness_09`/
+   `_07`, embedded symbols, no real part chosen yet). Each carries its
+   own full copy of the shared mic I2S bus (**star topology, confirmed
+   2026-09-11** — separate cable per module rather than one cable
+   daisy-chaining through both front, or both rear, modules) plus that
+   module's motor drive and, for the front pair, speaker drive:
+   - J2/J3 (front, 9 pins each): WS, BCLK, DOUT, 3V3_SYS, GND, motor
+     OUTP, motor OUTN, speaker OUTP, speaker OUTN
+   - J4/J5 (rear, 7 pins each): WS, BCLK, DOUT, 3V3_SYS, GND, motor
+     OUTP, motor OUTN
+   Each mic's SEL pin does **not** need its own harness wire — it's a
+   static GND/3V3 tie, wired locally on the earpiece module itself using
+   the 3V3_SYS/GND already carried there for the mic's own power.
+   Star topology means the *net* is identical either way (both mics on a
+   pair always tied to the same ESP32 pins); the choice only affects
+   physical cable routing and how many pins the central pod's side of
+   the harness needs (double, since each shared signal gets its own
+   dedicated cable run instead of one continuous daisy-chained wire).
+   This schematic is still captured as one flat sheet — the connectors
+   document the board boundary and exact wire count, but there aren't
+   yet separate KiCad projects/sheets per physical board (see below).
+8. Split into actual separate KiCad projects (or at minimum hierarchical
+   sheets) per physical board — right now it's one flat sheet with
+   connectors marking where the boundaries are, not 5 independent
+   layouts. Needed before real PCB layout can start on any of the 5.
+9. PCB layout itself (still 0 footprints placed, 0 traces routed) — now
    really 5 separate small layouts (4 earpiece modules + central pod),
    not 1.
 

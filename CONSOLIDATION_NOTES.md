@@ -86,11 +86,19 @@ left out.
   DRV2605 REG-pin caps were originally set to 0.1µF (my initial guess);
   TI's datasheet actually specifies 1.0µF, corrected as part of this pass.
 - **(Confirmed 2026-09-11) Board partition:** 4 earpiece modules (front-L/
-  front-R each with 1 mic + 1 motor + 1 speaker; rear-L/rear-R each with
-  just 1 mic + 1 motor) plus 1 central pod holding everything else (ESP32,
-  amp, mux, all 4 haptic drivers, charging/regulation, battery, all caps).
+  front-R each with 1 mic + 1 motor + 1 speaker + that mic's own
+  decoupling cap; rear-L/rear-R each with just 1 mic + 1 motor + cap)
+  plus 1 central pod holding everything else (ESP32, amp, mux, all 4
+  haptic drivers, charging/regulation, battery, remaining caps).
+- **(Added 2026-09-11) Harness connectors J2-J5**, one per earpiece
+  module, documenting exact wire count (9 pins front/with speaker, 7
+  pins rear/without) using **star topology** (confirmed with the user):
+  a separate cable per module rather than one cable daisy-chaining
+  through both mics on a shared I2S bus. The electrical nets are
+  identical either way — the choice only affects cable routing and
+  pod-side pin count. See CLAUDE.md for the full per-connector pin list.
   The schematic is still one flat sheet — splitting it into actual
-  per-board KiCad sheets is future work, not done yet.
+  per-board KiCad projects/sheets is still future work, not done yet.
 - **(Clarified 2026-09-11)** `EchoSafe_v1_mech_layout.png` is outdated,
   disregard it. `EchoSafe.png` is the actual target look, minus the
   in-ear-bud cable shown in that render — speakers mount in the behind-
