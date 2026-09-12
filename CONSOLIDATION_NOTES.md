@@ -112,6 +112,19 @@ left out.
   disregard it. `EchoSafe.png` is the actual target look, minus the
   in-ear-bud cable shown in that render — speakers mount in the behind-
   ear housings instead.
+- **(Done 2026-09-12) Footprints assigned across all 5 projects**,
+  target confirmed as a compact near-final wearable (not an early
+  bring-up prototype). Found and fixed two real bugs along the way:
+  (1) the project split had silently wiped the mic/motor footprints that
+  already existed pre-split — the instance generator zeroed every new
+  component's footprint unconditionally, restored from the pre-split
+  commit; (2) **footprint library registration (`fp-lib-table`) never
+  existed in any version of this project** — same class of gap as the
+  `sym-lib-table` issue found earlier — created it for all 5 projects and
+  fixed the bare (unprefixed) footprint names that could never have
+  resolved without it. Full per-part footprint table and reasoning is in
+  CLAUDE.md's "Footprints" section. Left unassigned: LS1/LS2 (speakers)
+  — no specific part chosen yet, dimensions vary too much to guess.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8

@@ -3758,7 +3758,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_PH_S2B_PH_K_1x02_P2.00mm_Horizontal"
 			(at 167.64 149.606 90)
 			(effects
 				(font
@@ -3892,7 +3892,7 @@
 				)
 			)
 		)
-		(property "Footprint" "ESP32-S3-WROOM-1_EXP"
+		(property "Footprint" "ESP32-S3-WROOM-1:ESP32-S3-WROOM-1_EXP"
 			(at 35.56 30.48 0)
 			(effects
 				(font
@@ -4091,7 +4091,7 @@
 				)
 			)
 		)
-		(property "Footprint" "21-0136I_T1633-4_MXM"
+		(property "Footprint" "MAX98357AETE-T:21-0136I_T1633-4_MXM"
 			(at 29.21 116.84 0)
 			(effects
 				(font
@@ -5870,7 +5870,8 @@
 	(no_connect (at 80.01 106.68) (uuid "dbb366b0-1316-4faa-8998-e00ca6e2071e"))
 	(no_connect (at 80.01 104.14) (uuid "f0a06def-7fae-4f86-b569-3209499f2649"))
 	(no_connect (at 80.01 101.6) (uuid "08d6c9c1-a3e6-4bc8-aca9-0345cf2f5cb3"))
-	(no_connect (at 80.01 99.06) (uuid "5c989a09-f822-40b4-898f-db9983eb7386"))	(symbol
+	(no_connect (at 80.01 99.06) (uuid "5c989a09-f822-40b4-898f-db9983eb7386"))
+	(symbol
 		(lib_id "Device:C")
 		(at 195.42 111.76 0)
 		(unit 1)
@@ -5898,7 +5899,7 @@
 			(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 195.42 111.76 0)
 			(effects
 				(font
@@ -5999,7 +6000,7 @@
 			(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 277.7 31.11 0)
 			(effects
 				(font
@@ -6100,7 +6101,7 @@
 			(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 277.7 66.11 0)
 			(effects
 				(font
@@ -6201,7 +6202,7 @@
 			(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 277.7 101.11 0)
 			(effects
 				(font
@@ -6301,7 +6302,7 @@
 			(at 142.38 1.11 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 			(at 150 10 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -6415,7 +6416,7 @@
 			(at 182.38 1.11 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
 			(at 190 10 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -6608,7 +6609,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 140 30 0)
 			(effects
 				(font
@@ -6723,7 +6724,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 155 30 0)
 			(effects
 				(font
@@ -6838,7 +6839,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 170 30 0)
 			(effects
 				(font
@@ -6953,7 +6954,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 185 30 0)
 			(effects
 				(font
@@ -7068,7 +7069,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 200 30 0)
 			(effects
 				(font
@@ -7191,7 +7192,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 200 50 0)
 			(effects
 				(font
@@ -7306,7 +7307,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 140 70 0)
 			(effects
 				(font
@@ -7421,7 +7422,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 155 70 0)
 			(effects
 				(font
@@ -7536,7 +7537,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 170 70 0)
 			(effects
 				(font
@@ -7641,7 +7642,7 @@
 			(at 24.92 182.3 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 30 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -7905,7 +7906,7 @@
 			(at 64.92 182.3 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 70 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -8169,7 +8170,7 @@
 			(at 104.92 184.84 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
 			(at 110 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -8383,7 +8384,7 @@
 			(at 244.92 184.84 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
 			(at 250 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)

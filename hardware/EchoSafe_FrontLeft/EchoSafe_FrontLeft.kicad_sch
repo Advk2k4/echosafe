@@ -856,7 +856,7 @@
 			(at 50 56 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "ICS-43434:LGA_CAV_IVS"
 			(at 50 50 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -1037,7 +1037,7 @@
 			(at 30 56 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 30 50 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -1118,7 +1118,7 @@
 			(at 50 96 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "C0720B001F:XDCR_C0720B001F"
 			(at 50 90 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -1280,7 +1280,7 @@
 			(at 120 56 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 120 50 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)

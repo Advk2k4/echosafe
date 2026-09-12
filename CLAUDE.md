@@ -466,12 +466,11 @@ separate earbud cable.
 4. ~~Verify MIC/motor quadrant assignments~~ — done.
 5. ~~Settle charging/power architecture~~ — done: TP4056 + LD1117V33,
    single 3V3_SYS rail (see "Power Architecture" above).
-6. Pick real footprints for every part — J1 (TP4056 module) and LD1
-   (LD1117V33) both need real footprints matching whatever physical
-   breakout/module form factor is used (these are complete boards, not
-   bare ICs — footprint choice depends on how they're mechanically
-   mounted, e.g. wired in vs. header-pinned); LS1/LS2, BT1, and all 17
-   caps also still have empty `Footprint` fields.
+6. ~~Pick real footprints for every part~~ — done (2026-09-12), except
+   LS1/LS2 (speakers), which need an actual part chosen first — see
+   "Footprints" section below for the full breakdown and what's still
+   worth double-checking (JST-SH exact library name, TP4056's real hole
+   spacing).
 7. ~~Define board partition~~ — confirmed (2026-09-11): **4 small earpiece
    modules + 1 central pod**, not one monolithic board:
    - Front-Left module: MIC1, M1, LS1 (speaker), + MIC1's own decoupling
@@ -485,9 +484,10 @@ separate earbud cable.
      BT1 (battery), remaining 13 capacitors (C1-C8, C13-C17)
    ~~Harness connectors added (2026-09-11)~~ — J2 (Front-Left, 9 pins),
    J3 (Front-Right, 9 pins), J4 (Rear-Left, 7 pins), J5 (Rear-Right,
-   7 pins). Placeholder generic connectors (`Connector:Conn_Harness_09`/
-   `_07`, embedded symbols, no real part chosen yet). Each carries its
-   own full copy of the shared mic I2S bus (**star topology, confirmed
+   7 pins). Schematic symbol is still a generic placeholder
+   (`Connector:Conn_Harness_09`/`_07`), but each now has a real
+   **footprint** assigned (JST-SH, 1.0mm pitch — see "Footprints"
+   section below). Each carries its own full copy of the shared mic I2S bus (**star topology, confirmed
    2026-09-11** — separate cable per module rather than one cable
    daisy-chaining through both front, or both rear, modules) plus that
    module's motor drive and, for the front pair, speaker drive:
@@ -554,12 +554,60 @@ KiCad doesn't automatically link separate projects' netlists. The actual
 electrical connection between a module and the pod is the physical cable;
 these matching connectors + net names are what tell you how to build it.
 
-**Not done yet, and deliberately deferred:** footprints (every part in
-all 5 projects still has an empty `Footprint` field), and any indication
-of the physical connector part actually used for J1-J5 (still the generic
-placeholder `Connector:Conn_Harness_09`/`_07` defined earlier). Both are
-real decisions for whoever's sourcing the wire harness, not something to
-guess here.
+### Footprints (2026-09-12)
+
+Target: **compact near-final wearable** (confirmed with the user — not an
+early bring-up prototype), so choices below favor small/soldered over
+socketed/header where there was a real choice to make.
+
+**Fixed a regression first:** splitting into 5 projects had wiped the
+mic (`LGA_CAV_IVS`) and motor (`C0720B001F:XDCR_C0720B001F`) footprints
+that already existed pre-split — my instance generator set every new
+component to an empty footprint unconditionally. Restored both from the
+pre-split commit.
+
+**Also fixed: footprint library registration never existed, in any
+version of this project.** Same class of bug as the `sym-lib-table` gap
+found earlier — `LGA_CAV_IVS`, `ESP32-S3-WROOM-1_EXP`, and
+`21-0136I_T1633-4_MXM` were all bare names with no `Library:` prefix, and
+there was no `fp-lib-table` file anywhere to register a library even if
+there had been. Created `fp-lib-table` in the central pod (registering
+`ESP32-S3-WROOM-1` and `MAX98357AETE-T`) and in all 4 module projects
+(registering `ICS-43434` and `C0720B001F`), then added the missing
+`Library:` prefixes so the references actually resolve. Verified every
+path resolves to a real `.kicad_mod` file on disk.
+
+**Already-correct, unchanged:** DRV2605LDGS ×4 and TCA9548A already had
+standard-library footprints from earlier this session
+(`Package_SO:VSSOP-10_3x3mm_P0.5mm`, `Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm`).
+
+**Newly assigned:**
+| Part | Footprint | Basis |
+|---|---|---|
+| All 17 capacitors | `Capacitor_SMD:C_0603_1608Metric` | 0603 — small enough for a wearable, still hand-solderable |
+| BT1 (battery) | `Connector_JST:JST_PH_S2B_PH_K_1x02_P2.00mm_Horizontal` | Confirmed with user: this battery ships with a pre-attached JST-PH connector |
+| LD1 (LD1117V33 breakout) | `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical` | Represents the breakout's actual 0.1" hole pattern — used regardless of whether pins or direct wire are soldered in |
+| J1 central pod (TP4056 module) | `Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical` | Placeholder for BAT+/BAT-/OUT+/OUT- pad pattern — **verify against the actual purchased HiLetGo board**, hole spacing varies between board revisions sold under that listing |
+| J2/J3 (pod, 9-pin) + FrontLeft/FrontRight module J1 | `Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal` | JST-SH (1.0mm pitch) chosen for the compact-wearable target — 9 conductors at 2.54mm would be too bulky for a headband |
+| J4/J5 (pod, 7-pin) + RearLeft/RearRight module J1 | `Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal` | Same reasoning, 7-pin variant |
+
+**Confidence note on the JST-SH names specifically:** I'm confident in
+the general choice (JST-SH is a real, standard, compact connector family
+well-suited here) but less certain of the *exact* string KiCad's global
+library uses for the 9/7-pin variants — I don't have a live KiCad
+install to check against, unlike the TCA9548A pinout earlier which came
+from a fetched datasheet. If KiCad's footprint browser doesn't find
+these by that exact name, search "JST_SH" there and pick the matching
+pin-count entry — the schematic connectivity is unaffected either way,
+only the footprint text needs correcting.
+
+**Deliberately left unassigned:** LS1/LS2 (speakers) — no specific
+speaker part has been chosen yet beyond "8Ω," and speaker capsule
+dimensions vary too much (a common wearable speaker could be anywhere
+from 8mm to 15mm+) to guess a footprint that would mean anything. Pick
+the actual part first, then assign its footprint. `#PWR01` (a GND power-
+flag symbol) correctly has no footprint — power symbols never do, that's
+not a gap.
 
 ---
 
