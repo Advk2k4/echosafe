@@ -47,13 +47,14 @@ push here without asking first, every time.
   all 4 mics regardless of `ML_MIC_CHANNEL`, so if TL is genuinely dead,
   direction detection will still be degraded (that quadrant will rarely/
   never be selected correctly) until the hardware fault itself is fixed.
-- **Hardware:** `hardware/EchoSafe_RevA/` has a complete, detailed KiCad
-  *schematic* (ESP32-S3-WROOM-1, 4× ICS-43434 mics, 2× MAX98357A, 4×
-  DRV2605L haptics via TCA9548A mux, a power management IC) but the
-  **PCB layout was never started** — 0 footprints placed, 0 traces routed,
-  nothing fabricated. Any bring-up right now has to happen on a breadboard
-  or dev-kit with jumper wiring, following the schematic's part choices and
-  the pin mapping documented below.
+- **Hardware:** `hardware/EchoSafe_RevA/` has a complete, detailed, fully
+  signal-wired KiCad *schematic* (ESP32-S3-WROOM-1, 4× ICS-43434 mics,
+  1× MAX98357A driving 2× 8Ω speakers in parallel, 4× DRV2605L haptics via
+  a TCA9548A mux, TP4056 charger + LD1117V33 regulator power chain) but
+  the **PCB layout was never started** — 0 footprints placed, 0 traces
+  routed, nothing fabricated. Any bring-up right now has to happen on a
+  breadboard or dev-kit with jumper wiring, following the schematic's part
+  choices and the pin mapping documented below.
 
 ---
 
@@ -117,19 +118,23 @@ plugin), used by `echosafe_full_system.ino`:
 
 ## Hardware Pin Mapping (ESP32-S3-WROOM-1 N16R8)
 
-### Microphones (4× ICS-43434, 2 I2S buses in stereo L/R pairs)
+### Microphones (4× ICS-43434, 2 I2S buses in stereo L/R pairs, run on 3.3V)
 | Mic | Bus | Signal | GPIO |
 |---|---|---|---|
 | TOP pair | I2S_NUM_0 | LRCLK / WS | 4 |
 | TOP pair | I2S_NUM_0 | BCLK | 5 |
 | TOP pair | I2S_NUM_0 | DOUT | 16 |
-| Top-Left (TL) | — | SEL | GND → LEFT channel |
-| Top-Right (TR) | — | SEL | 3V3 → RIGHT channel |
+| Top-Left (TL) — MIC1 | — | SEL | GND → LEFT channel |
+| Top-Right (TR) — MIC2 | — | SEL | `3V3_SYS` → RIGHT channel |
 | BOT pair | I2S_NUM_1 | LRCLK / WS | 12 |
 | BOT pair | I2S_NUM_1 | BCLK | 21 |
 | BOT pair | I2S_NUM_1 | DOUT | 18 |
-| Bot-Left (BL) | — | SEL | GND → LEFT channel |
-| Bot-Right (BR) | — | SEL | 3V3 → RIGHT channel |
+| Bottom-Right (BR) — MIC3 | — | SEL | `3V3_SYS` → RIGHT channel |
+| Bottom-Left (BL) — MIC4 | — | SEL | GND → LEFT channel |
+
+All 4 mic VDD pins → `3V3_SYS` (mics originally spec'd for a separate 1.8V
+rail; moved to the single 3.3V system rail when the PMIC was replaced —
+ICS-43434 supports up to 3.63V, so this is within spec).
 
 ### Speakers (2× MAX98357A, parallel, shares I2S_NUM_1 with BOT mics)
 | Signal | GPIO |
@@ -246,10 +251,79 @@ manually copy the header anywhere.
 
 KiCad project: `EchoSafe_RevA/EchoSafe_RevA.kicad_sch` /
 `.kicad_pcb` / `.kicad_pro`, with a component library in `lib/` (footprints
-+ symbols for ESP-32, ICS-43434, MAX98357AETE-T, haptic motors, a power
-management IC). **The schematic is real and detailed; the PCB layout was
-never started** (empty `.kicad_pcb`, 0 footprints placed). `datasheets/`
++ symbols for ESP-32, ICS-43434, MAX98357AETE-T, haptic motors — the
+original power management IC's library entry is no longer used, see Power
+Architecture below). **The schematic is real and detailed; the PCB layout
+was never started** (empty `.kicad_pcb`, 0 footprints placed). `datasheets/`
 and `outputs/` are currently empty.
+
+### Power Architecture (current, as of 2026-09-11)
+
+```
+USB-C (on the TP4056 module itself, not separately represented)
+        │
+        ▼
+   J1 — TP4056_Module (HiLetGo, w/ battery protection)
+   BAT+/BAT- ──── VBAT ────  BT1 (3.7V 350mAh LiPo)
+   OUT+/OUT- ──── VSYS ────► LD1 — LD1117V33 (SparkFun breakout)
+                                    VOUT ──── 3V3_SYS ────► everything else
+```
+
+- **BT1**: 3.7V 350mAh Li-ion polymer battery.
+- **J1 (TP4056_Module)**: complete self-contained charger board (own USB
+  port, charge IC, status LEDs, battery protection) — represented in this
+  schematic only by its 4 external connections (`BAT+`, `BAT-`, `OUT+`,
+  `OUT-`). The module's internal USB port, caps, and LEDs are not modeled;
+  there is nothing to wire for them.
+- **LD1 (LD1117V33)**: fixed 3.3V linear regulator, takes the TP4056's
+  `VSYS` output and produces the single `3V3_SYS` rail everything else
+  runs on. Pin numbering follows the bare LD1117 TO-220/SOT-223 datasheet
+  convention (1=GND, 2=VOUT, 3=VIN) even though the actual part is a
+  breakout board.
+- **This replaced an NPM1300 PMIC (Nordic nPM1300)** that was in the
+  original pre-consolidation schematic, along with a placeholder USB-C
+  connector added earlier in this session. Both were removed entirely
+  (lib_symbol defs, instances, and their wiring) once TP4056 + LD1117V33
+  was confirmed as the actual intended design — simpler, and correctly
+  matches parts the user already has (HiLetGo TP4056, SparkFun LD1117V33).
+- **Two previously-separate 3.3V rails were merged.** The original design
+  had `3V3_SYS` (digital) and `3V3_AUDIO` (amp) as isolated rails, plus a
+  `1V8_MIC` rail for the mics. All three are now one `3V3_SYS` rail from
+  the single LD1117V33 — simpler, appropriate for a small battery-powered
+  wearable where the amp isn't driving continuous high power. If audio
+  noise from digital switching turns out to be audible in practice, that's
+  the first place to reconsider (add a second regulator or an LC filter
+  for the amp specifically).
+
+### Capacitors (C1-C17) — full mapping
+
+| Ref | Value | Purpose |
+|---|---|---|
+| C1 | 10µF | LD1117V33 VIN bulk |
+| C2 | 10µF | LD1117V33 VOUT bulk |
+| C3 | 100nF | LD1117V33 VIN local bypass |
+| C4 | 100nF | LD1117V33 VOUT local bypass |
+| C5 | 1µF | DRV2605 U3 REG pin |
+| C6 | 1µF | DRV2605 U6 REG pin |
+| C7 | 1µF | DRV2605 U7 REG pin |
+| C8 | 1µF | DRV2605 U8 REG pin |
+| C9 | 1µF | MIC1 VDD decoupling |
+| C10 | 1µF | MIC2 VDD decoupling |
+| C11 | 1µF | MIC3 VDD decoupling |
+| C12 | 1µF | MIC4 VDD decoupling |
+| C13 | 1µF | TCA9548A VCC decoupling |
+| C14 | 1µF | MAX98357A VDD decoupling |
+| C15 | 100nF | ESP32-S3 3V3 pin local bypass |
+| C16 | 10µF | Bulk cap on `VSYS` (TP4056 output → LD1117V33 input), absorbs haptic-motor current transients |
+| C17 | 1µF | ESP32-S3 3V3 pin bulk cap, paired with C15 — Espressif's WROOM-1 reference design recommends a bulk + local-bypass pair on the module's 3.3V pin, not a single cap |
+
+Note the REG-pin value was corrected from an earlier 0.1µF guess to 1.0µF
+— TI's DRV2605L datasheet actually specifies 1.0µF there. All 17 caps use
+global labels (not direct wires) to reach their rail — consistent with
+the rest of this schematic, and electrically identical for schematic-
+capture purposes; physical proximity on the real board is a PCB-layout
+concern, not a schematic one. All still have empty `Footprint` fields —
+package/value are set, physical part selection is still open.
 
 **Phase 2 cross-check result (2026-09-11): the schematic was not wired
 at the signal level.** Components were correctly selected and placed (ESP32-
@@ -320,15 +394,12 @@ these were assumptions, not verified facts, until confirmed:
   "Bottom-Right") now drives M3** — the driver-to-channel assignment
   didn't change, only which physical motor each driver's OUTP/OUTN
   connects to.
-- **Rail assignments** (not specified anywhere, inferred from the
-  schematic's own existing rail names): DRV2605 (×4) and TCA9548A power/
-  enable pins → `3V3_SYS` (digital/logic rail, both ICs need ≥2.0V, ruling
-  out the 1.8V `1V8_MIC` rail); MAX98357A power/enable → `3V3_AUDIO`
-  (matches the schematic's own audio-vs-system rail split); mic VDD and
-  mic SEL-high (TR/BR) → `1V8_MIC` (overrides the firmware comment's
-  generic "SEL→3V3" — the schematic's own dedicated mic rail is 1.8V, and
-  driving a logic pin above its own VDD is bad practice, so `1V8_MIC` is
-  the more correct target here than a 3.3V rail).
+- **Rail assignments**: DRV2605 (×4), TCA9548A, MAX98357A, and mic power/
+  enable pins all → `3V3_SYS`. Originally split across three separate
+  rails (`3V3_SYS`/`3V3_AUDIO`/`1V8_MIC`) inferred from the pre-existing
+  NPM1300-era rail names; consolidated to one rail once the power
+  architecture was replaced with TP4056 + a single LD1117V33 — see
+  "Power Architecture" above.
 - **TCA9548A address pins A0/A1/A2 → GND** (address 0x70, per firmware's
   `TCA_ADDR`). **RESET → `3V3_SYS` directly** — datasheet recommends a
   pull-up resistor rather than a direct tie; direct tie was used here as a
@@ -339,13 +410,6 @@ these were assumptions, not verified facts, until confirmed:
   digital input floating is bad practice).
 - **DRV2605 EN → `3V3_SYS`** (always-enabled; firmware has no hardware
   enable/disable control for haptics).
-
-**REG decoupling caps added (2026-09-11):** C6/C7/C8/C9 (0.1µF, the
-datasheet-recommended value), one per DRV2605 (U3/U6/U7/U8), each wired
-with a short direct wire from the DRV2605's REG pin (pin 1) to the cap,
-and the cap's other terminal tied to `GND`. Footprint left unassigned
-(`""`) — same as every other passive in this schematic, none have
-footprints picked yet.
 
 **Speaker architecture (1 amp vs. 2, decided 2026-09-11):** keeping the
 current design — 1× MAX98357A driving both speakers (LS1, LS2) in
@@ -371,23 +435,11 @@ ESP32, since I2S is a broadcast bus — no second I2S peripheral needed).
 2× 8Ω in parallel = 4Ω, the single-MAX98357A design is within its rated
 load — no change needed, decision above stands as final, not conditional.
 
-**USB-C charging port added (2026-09-11):** J1, a simplified placeholder
-connector (`Connector:USB_C_Power_Only`, embedded in this schematic — no
-real USB-C part number chosen yet, so no footprint either, same "decide
-later" treatment as every other undecided passive here). Exposes exactly
-the signals a charge-only USB-C port needs: `VBUS`, `GND`, `CC1`, `CC2`,
-plus a `SHIELD` pin tied to `GND`. Wired directly to the NPM1300 PMIC's
-own dedicated `VBUS`/`CC1`/`CC2` pins (pins 21/23/24) — **no external CC
-pull-down resistors were added**, because the nPM1300 has its own built-in
-USB-C/BC1.2 current-advertisement detection on those exact pins per its
-standard application circuit; adding external pull-downs on top would be
-redundant/wrong for this specific PMIC (it would be *necessary* for a
-simpler charger IC without integrated CC detection, but not this one).
-**This one is based on general knowledge of the nPM1300 family's
-published reference design, not a datasheet PDF fetched during this
-session** (unlike the TCA9548A pinout, which was) — worth a quick check
-against Nordic's actual nPM1300 datasheet before finalizing if you want
-that same level of verification.
+**USB-C charging (2026-09-11, superseded same day):** a placeholder bare
+USB-C connector wired directly to the NPM1300's CC1/CC2/VBUS pins was
+added first, then removed once TP4056 + LD1117V33 was confirmed as the
+actual design — see "Power Architecture" above. The TP4056 module has its
+own onboard USB port; no separate connector symbol is needed.
 
 No physical power switch or user-facing button were added — confirmed
 these aren't part of this design (only the mechanical concept image
@@ -402,18 +454,34 @@ separate earbud cable.
 
 **Still needed before this can go to PCB layout:**
 1. ~~Wire the actual I2S/I2C signal nets~~ — done.
-2. ~~REG decoupling caps~~ — done.
+2. ~~REG decoupling caps~~ — done (C5-C8, corrected to 1µF).
 3. ~~Resolve 1-amp-vs-2-amp~~ — done, confirmed final with 8Ω speakers.
 4. ~~Verify MIC/motor quadrant assignments~~ — done.
-5. ~~Add USB-C charging~~ — done (placeholder part, see above).
-6. Pick real part numbers + footprints for every passive/connector left
-   with an empty `Footprint` field (C1-C9, J1, LS1/LS2, BT1) before layout
-   can actually begin.
-7. Define how this splits across physical boards — the product is a
-   multi-enclosure headset (left earpiece / right earpiece / central
-   pod), not one monolithic board; this schematic doesn't yet capture
-   that partition.
-8. PCB layout itself (still 0 footprints placed, 0 traces routed).
+5. ~~Settle charging/power architecture~~ — done: TP4056 + LD1117V33,
+   single 3V3_SYS rail (see "Power Architecture" above).
+6. Pick real footprints for every part — J1 (TP4056 module) and LD1
+   (LD1117V33) both need real footprints matching whatever physical
+   breakout/module form factor is used (these are complete boards, not
+   bare ICs — footprint choice depends on how they're mechanically
+   mounted, e.g. wired in vs. header-pinned); LS1/LS2, BT1, and all 17
+   caps also still have empty `Footprint` fields.
+7. ~~Define board partition~~ — confirmed (2026-09-11): **4 small earpiece
+   modules + 1 central pod**, not one monolithic board:
+   - Front-Left module: MIC1, M1, LS1 (speaker)
+   - Front-Right module: MIC2, M2, LS2 (speaker)
+   - Rear-Right module: MIC3, M3 (no speaker)
+   - Rear-Left module: MIC4, M4 (no speaker)
+   - Central pod (everything else): U1 (ESP32), U2 (MAX98357A), U5
+     (TCA9548A), U3/U6/U7/U8 (DRV2605 ×4), J1 (TP4056), LD1 (LD1117V33),
+     BT1 (battery), all 17 capacitors
+   This schematic is still captured as one flat sheet — it doesn't yet
+   have separate KiCad hierarchical sheets per module, which real
+   multi-board layout will need (each of the 5 boards gets its own
+   footprint placement; the earpiece↔pod connections become board-edge
+   connectors or a wire harness, not traces).
+8. PCB layout itself (still 0 footprints placed, 0 traces routed) — now
+   really 5 separate small layouts (4 earpiece modules + central pod),
+   not 1.
 
 ---
 

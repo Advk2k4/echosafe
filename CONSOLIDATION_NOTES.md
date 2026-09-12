@@ -69,10 +69,28 @@ left out.
 - **(Decided 2026-09-11, confirmed final)** Speaker architecture: 1×
   MAX98357A driving both 8Ω speakers in parallel (4Ω combined, within
   spec) — no second amp needed.
-- **(Added 2026-09-11)** J1, placeholder USB-C charging connector, wired
-  to the NPM1300 PMIC's native VBUS/CC1/CC2 pins (no external CC resistors
-  — the PMIC has built-in USB-C detection). No power switch or button
-  added — confirmed out of scope for this design.
+- **(Added, then replaced, 2026-09-11)** A placeholder USB-C connector was
+  wired to the NPM1300 PMIC's native VBUS/CC1/CC2 pins, then removed the
+  same day once the real power architecture was confirmed. No power switch
+  or button added — confirmed out of scope for this design.
+- **(Replaced 2026-09-11) Power architecture overhaul:** NPM1300 PMIC
+  removed entirely (it was never actually wired even in the original
+  pre-consolidation schematic — confirmed before deleting it) and replaced
+  with the user's actual intended parts: J1 = TP4056_Module (HiLetGo,
+  w/ protection), LD1 = LD1117V33 (SparkFun breakout), BT1 = 3.7V 350mAh
+  LiPo. The three previously-separate rails (3V3_SYS/3V3_AUDIO/1V8_MIC)
+  were consolidated into one 3V3_SYS rail from the single LD1117V33 —
+  mics moved from a planned 1.8V supply to 3.3V (within ICS-43434 spec).
+  Full capacitor mapping (C1-C17, all values and purposes) is in
+  CLAUDE.md's "Power Architecture" section, including a correction: the
+  DRV2605 REG-pin caps were originally set to 0.1µF (my initial guess);
+  TI's datasheet actually specifies 1.0µF, corrected as part of this pass.
+- **(Confirmed 2026-09-11) Board partition:** 4 earpiece modules (front-L/
+  front-R each with 1 mic + 1 motor + 1 speaker; rear-L/rear-R each with
+  just 1 mic + 1 motor) plus 1 central pod holding everything else (ESP32,
+  amp, mux, all 4 haptic drivers, charging/regulation, battery, all caps).
+  The schematic is still one flat sheet — splitting it into actual
+  per-board KiCad sheets is future work, not done yet.
 - **(Clarified 2026-09-11)** `EchoSafe_v1_mech_layout.png` is outdated,
   disregard it. `EchoSafe.png` is the actual target look, minus the
   in-ear-bud cable shown in that render — speakers mount in the behind-
