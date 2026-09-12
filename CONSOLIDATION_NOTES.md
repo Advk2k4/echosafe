@@ -97,8 +97,17 @@ left out.
   through both mics on a shared I2S bus. The electrical nets are
   identical either way — the choice only affects cable routing and
   pod-side pin count. See CLAUDE.md for the full per-connector pin list.
-  The schematic is still one flat sheet — splitting it into actual
-  per-board KiCad projects/sheets is still future work, not done yet.
+- **(Done 2026-09-12) Split into 5 separate KiCad projects.** MIC1-4,
+  M1-4, LS1-2, and their decoupling caps (C9-C12) moved out of
+  `EchoSafe_RevA` (now specifically the central pod) into 4 new small
+  projects: `EchoSafe_FrontLeft`, `EchoSafe_FrontRight`,
+  `EchoSafe_RearLeft`, `EchoSafe_RearRight`. All 5 share one library
+  folder (`EchoSafe_RevA/lib/symbols/`) via relative `sym-lib-table`
+  paths — nothing duplicated. Each module connects to the pod's J2-J5
+  connectors via a matching local `J1` using the same net names (a
+  documentation convention, not an automatic cross-project link — the
+  real connection is the physical cable). See CLAUDE.md's "Multi-Board
+  Project Structure" section for the full breakdown.
 - **(Clarified 2026-09-11)** `EchoSafe_v1_mech_layout.png` is outdated,
   disregard it. `EchoSafe.png` is the actual target look, minus the
   in-ear-bud cable shown in that render — speakers mount in the behind-

@@ -11,6 +11,6 @@ where this repo's contents came from.
 ```
 firmware/   ESP32-S3 Arduino sketches (full system, single-mic reference, data collector)
 ml/         Training pipeline + dataset
-hardware/   RevA KiCad schematic (PCB layout not yet started)
+hardware/   5 KiCad projects: central pod + 4 earpiece modules (PCB layout not yet started)
 docs/       Supplementary reference docs
 ```

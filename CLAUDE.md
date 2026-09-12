@@ -247,15 +247,22 @@ manually copy the header anywhere.
 
 ---
 
-## Hardware (`hardware/EchoSafe_RevA/`)
+## Hardware (`hardware/`)
 
-KiCad project: `EchoSafe_RevA/EchoSafe_RevA.kicad_sch` /
-`.kicad_pcb` / `.kicad_pro`, with a component library in `lib/` (footprints
-+ symbols for ESP-32, ICS-43434, MAX98357AETE-T, haptic motors — the
-original power management IC's library entry is no longer used, see Power
-Architecture below). **The schematic is real and detailed; the PCB layout
-was never started** (empty `.kicad_pcb`, 0 footprints placed). `datasheets/`
-and `outputs/` are currently empty.
+**As of 2026-09-12 this is 5 separate KiCad projects, not 1** — see
+"Multi-Board Project Structure" below for the full layout. The original
+`EchoSafe_RevA` project is now specifically the **central pod** (ESP32,
+amp, mux, haptic drivers, charging/regulation, battery); 4 new small
+projects (`EchoSafe_FrontLeft/Right`, `EchoSafe_RearLeft/Right`) hold one
+mic + motor (+ speaker, front only) each. All 5 share one library folder
+at `EchoSafe_RevA/lib/symbols/`.
+
+`EchoSafe_RevA/EchoSafe_RevA.kicad_sch` / `.kicad_pcb` / `.kicad_pro` is
+the central pod's project — its `.kicad_pcb` exists but is empty (0
+footprints placed). **The 4 new module projects don't have a `.kicad_pcb`
+file at all yet** — schematic capture only; KiCad creates one
+automatically the first time someone opens a board view for that project.
+`datasheets/` and `outputs/` are currently empty.
 
 ### Power Architecture (current, as of 2026-09-11)
 
@@ -499,13 +506,60 @@ separate earbud cable.
    This schematic is still captured as one flat sheet — the connectors
    document the board boundary and exact wire count, but there aren't
    yet separate KiCad projects/sheets per physical board (see below).
-8. Split into actual separate KiCad projects (or at minimum hierarchical
-   sheets) per physical board — right now it's one flat sheet with
-   connectors marking where the boundaries are, not 5 independent
-   layouts. Needed before real PCB layout can start on any of the 5.
-9. PCB layout itself (still 0 footprints placed, 0 traces routed) — now
-   really 5 separate small layouts (4 earpiece modules + central pod),
-   not 1.
+8. ~~Split into actual separate KiCad projects per physical board~~ —
+   done (2026-09-12). See "Multi-Board Project Structure" below.
+9. PCB layout itself (still 0 footprints placed, 0 traces routed, in
+   all 5 projects).
+
+### Multi-Board Project Structure (2026-09-12)
+
+`hardware/` now holds **5 independent KiCad projects**, not one:
+
+```
+hardware/
+  EchoSafe_RevA/            <- CENTRAL POD (original project, kept as-is)
+    lib/symbols/            <- shared library, used by ALL 5 projects
+    EchoSafe_RevA/
+      EchoSafe_RevA.kicad_pro / .kicad_sch / sym-lib-table
+  EchoSafe_FrontLeft/       <- NEW: MIC1, M1, LS1, C9
+  EchoSafe_FrontRight/      <- NEW: MIC2, M2, LS2, C10
+  EchoSafe_RearLeft/        <- NEW: MIC4, M4, C12
+  EchoSafe_RearRight/       <- NEW: MIC3, M3, C11
+```
+
+The 4 new module projects are deliberately simple: each is one small
+`.kicad_pro`/`.kicad_sch` pair at the top level of its folder (not the
+central pod's double-nested `EchoSafe_RevA/EchoSafe_RevA/` layout —
+that nesting wasn't worth replicating for a 4-5-component board). Each
+has its own `sym-lib-table` pointing back at the **shared** library under
+`EchoSafe_RevA/lib/symbols/` via `${KIPRJMOD}/../EchoSafe_RevA/lib/symbols/...`
+— nothing was duplicated, all 5 projects read the same symbol files.
+
+**What moved out of the central pod:** MIC1-4, M1-4, LS1-2, and each
+mic's own decoupling cap (C9-C12) were removed from
+`EchoSafe_RevA.kicad_sch` entirely (instances *and* their pin-level
+labels) and re-created fresh in their respective module project, with
+new UUIDs (each project has its own independent UUID namespace — there's
+no cross-project uniqueness requirement, unlike within one file). The
+central pod's copy of every shared net (`MIC_TOP_WS`, `MOTOR_TL_OUTP`,
+`SPK_OUTP`, etc.) lost exactly the endpoints that moved out and kept the
+ones that stayed (verified net-by-net, not just paren-balance).
+
+**Each module schematic is self-contained and small** — its mic, motor,
+(front only) speaker, decoupling cap, and one `J1` connector (9-pin front
+with speaker pins, 7-pin rear without), wired with the **same net names**
+as the corresponding pod-side connector (J2/J3/J4/J5). Matching names
+across independent projects is a human/documentation convention here —
+KiCad doesn't automatically link separate projects' netlists. The actual
+electrical connection between a module and the pod is the physical cable;
+these matching connectors + net names are what tell you how to build it.
+
+**Not done yet, and deliberately deferred:** footprints (every part in
+all 5 projects still has an empty `Footprint` field), and any indication
+of the physical connector part actually used for J1-J5 (still the generic
+placeholder `Connector:Conn_Harness_09`/`_07` defined earlier). Both are
+real decisions for whoever's sourcing the wire harness, not something to
+guess here.
 
 ---
 
