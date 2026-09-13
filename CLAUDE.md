@@ -591,15 +591,23 @@ standard-library footprints from earlier this session
 | J2/J3 (pod, 9-pin) + FrontLeft/FrontRight module J1 | `Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal` | JST-SH (1.0mm pitch) chosen for the compact-wearable target — 9 conductors at 2.54mm would be too bulky for a headband |
 | J4/J5 (pod, 7-pin) + RearLeft/RearRight module J1 | `Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal` | Same reasoning, 7-pin variant |
 
-**Confidence note on the JST-SH names specifically:** I'm confident in
-the general choice (JST-SH is a real, standard, compact connector family
-well-suited here) but less certain of the *exact* string KiCad's global
-library uses for the 9/7-pin variants — I don't have a live KiCad
-install to check against, unlike the TCA9548A pinout earlier which came
-from a fetched datasheet. If KiCad's footprint browser doesn't find
-these by that exact name, search "JST_SH" there and pick the matching
-pin-count entry — the schematic connectivity is unaffected either way,
-only the footprint text needs correcting.
+**JST-SH names verified (2026-09-13).** Fetched the actual files from
+KiCad's own footprints repo instead of relying on the earlier unverified
+guess — and the guess was wrong: it used a `BM0xB-SRSS-TB` prefix: the
+real files use `SM0xB-SRSS-TB`. Confirmed both exist with the right pad
+count (`JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal` = 9 signal pads
++ 2 mounting pads, `JST_SH_SM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal` =
+7 signal pads + 2 mounting pads) and fixed all 8 occurrences across all
+5 projects (J2/J3/J4/J5 in the central pod, one `J1` per module).
+
+**TP4056 pin spacing checked (2026-09-13):** couldn't pin down exact
+dimensions for the specific HiLetGo listing, but multiple independent
+sources agree 2.54mm/0.1" through-hole pitch is standard across common
+TP4056 module variants (some SMD-pad variants exist too) — the
+`PinHeader_1x04_P2.54mm_Vertical` placeholder already assigned matches
+the common case. Still worth a 30-second check against the physical
+board once it's in hand, since "TP4056 HiLetGo" covers slightly
+different board revisions.
 
 **LS1/LS2 (speakers) assigned (2026-09-13):** [DigiKey 1528-4227-ND](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140)
 = Adafruit #4227 "Mini Oval Speaker," 8Ω, 1W, 30×20×5mm, verified via

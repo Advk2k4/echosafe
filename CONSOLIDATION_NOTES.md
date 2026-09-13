@@ -129,6 +129,14 @@ left out.
   from memory. Connects via a Molex PicoBlade 1.25mm 2-pin connector
   (not bare wire) — footprint set to the matching PicoBlade receptacle,
   confirmed against KiCad's own footprint library source.
+- **(Verified 2026-09-13)** The JST-SH harness connector footprint
+  names from last session were flagged as unverified — checked them
+  against KiCad's own footprints repo and found the guess was wrong
+  (`BM0xB-SRSS-TB` prefix instead of the real `SM0xB-SRSS-TB`). Fixed
+  all 8 occurrences across all 5 projects. Also checked TP4056 module
+  pin spacing against multiple independent sources; 2.54mm/0.1"
+  through-hole is standard, matching what was already assigned —
+  worth a physical check against the actual board once it's in hand.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8

@@ -7642,7 +7642,7 @@
 			(at 24.92 182.3 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 30 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -7906,7 +7906,7 @@
 			(at 64.92 182.3 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 70 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -8170,7 +8170,7 @@
 			(at 104.92 184.84 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
 			(at 110 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -8384,7 +8384,7 @@
 			(at 244.92 184.84 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal"
 			(at 250 195 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
