@@ -1195,13 +1195,21 @@
 			(at 50 114 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Value" "Speaker"
+		(property "Value" "Adafruit_4227_8ohm_1W"
 			(at 50 126 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_Molex:Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal"
 			(at 50 120 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" "https://cdn-shop.adafruit.com/product-files/4227/4227_datasheet.pdf"
+			(at 50 120 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "Adafruit #4227 / DigiKey 1528-4227-ND -- Mini Oval Speaker, 8 ohm 1W, 30x20x5mm, Molex PicoBlade 1.25mm 2-pin connector on ~10mm cable"
+			(at 50 120 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
 		)
 		(pin "1"
 			(uuid "35e625fe-7221-4dc7-94e1-7b030b47afde")

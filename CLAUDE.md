@@ -466,9 +466,9 @@ separate earbud cable.
 4. ~~Verify MIC/motor quadrant assignments~~ — done.
 5. ~~Settle charging/power architecture~~ — done: TP4056 + LD1117V33,
    single 3V3_SYS rail (see "Power Architecture" above).
-6. ~~Pick real footprints for every part~~ — done (2026-09-12), except
-   LS1/LS2 (speakers), which need an actual part chosen first — see
-   "Footprints" section below for the full breakdown and what's still
+6. ~~Pick real footprints for every part~~ — done (2026-09-12), including
+   LS1/LS2 as of 2026-09-13 (Adafruit #4227 / DigiKey 1528-4227-ND) —
+   see "Footprints" section below for the full breakdown and what's still
    worth double-checking (JST-SH exact library name, TP4056's real hole
    spacing).
 7. ~~Define board partition~~ — confirmed (2026-09-11): **4 small earpiece
@@ -601,13 +601,21 @@ these by that exact name, search "JST_SH" there and pick the matching
 pin-count entry — the schematic connectivity is unaffected either way,
 only the footprint text needs correcting.
 
-**Deliberately left unassigned:** LS1/LS2 (speakers) — no specific
-speaker part has been chosen yet beyond "8Ω," and speaker capsule
-dimensions vary too much (a common wearable speaker could be anywhere
-from 8mm to 15mm+) to guess a footprint that would mean anything. Pick
-the actual part first, then assign its footprint. `#PWR01` (a GND power-
-flag symbol) correctly has no footprint — power symbols never do, that's
-not a gap.
+**LS1/LS2 (speakers) assigned (2026-09-13):** [DigiKey 1528-4227-ND](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140)
+= Adafruit #4227 "Mini Oval Speaker," 8Ω, 1W, 30×20×5mm, verified via
+DigiKey/Adafruit's own listings (not from memory). Notably, **this part
+connects via a Molex PicoBlade 1.25mm-pitch 2-pin connector on a ~10mm
+cable, not bare wire leads or solder pads** — changes the footprint from
+what a generic "speaker" assumption would have used. Footprint set to
+`Connector_Molex:Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal`
+(the mating receptacle for that connector), confirmed against KiCad's
+own official footprint library source, not guessed like the JST-SH name
+above. Also worth noting: Adafruit's own product page recommends this
+exact speaker for use with MAX98357A — which is what this design already
+uses, good independent confirmation the part choice fits.
+
+`#PWR01` (a GND power-flag symbol) correctly has no footprint — power
+symbols never do, that's not a gap.
 
 ---
 

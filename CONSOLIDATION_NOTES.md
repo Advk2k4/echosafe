@@ -123,8 +123,12 @@ left out.
   `sym-lib-table` issue found earlier — created it for all 5 projects and
   fixed the bare (unprefixed) footprint names that could never have
   resolved without it. Full per-part footprint table and reasoning is in
-  CLAUDE.md's "Footprints" section. Left unassigned: LS1/LS2 (speakers)
-  — no specific part chosen yet, dimensions vary too much to guess.
+  CLAUDE.md's "Footprints" section. Footprints across all 5 projects are now fully assigned as of
+  2026-09-13: LS1/LS2 = DigiKey 1528-4227-ND = Adafruit #4227 Mini Oval
+  Speaker, 8Ω/1W/30x20x5mm, verified via DigiKey/Adafruit listings, not
+  from memory. Connects via a Molex PicoBlade 1.25mm 2-pin connector
+  (not bare wire) — footprint set to the matching PicoBlade receptacle,
+  confirmed against KiCad's own footprint library source.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8
