@@ -775,7 +775,7 @@
 	)
 	(global_label "3V3_SYS"
 		(shape bidirectional)
-		(at 50 47.46 0)
+		(at 50 52.54 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -785,7 +785,7 @@
 		)
 		(uuid "4a744a35-f4f9-40de-af7f-0b39c6cac38b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55 47.46 0)
+			(at 55 52.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -797,7 +797,7 @@
 	)
 	(global_label "GND"
 		(shape bidirectional)
-		(at 50 44.92 0)
+		(at 50 55.08 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -807,7 +807,7 @@
 		)
 		(uuid "c5991f1b-f6dc-4e6d-8cba-2e26ea6f4cb6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55 44.92 0)
+			(at 55 55.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -819,7 +819,7 @@
 	)
 	(global_label "MIC_BOT_SCK"
 		(shape bidirectional)
-		(at 90.64 44.92 0)
+		(at 90.64 55.08 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -829,7 +829,7 @@
 		)
 		(uuid "9593c9fd-0e65-4087-bdc3-7b32c2ac7968")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 95.64 44.92 0)
+			(at 95.64 55.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -841,7 +841,7 @@
 	)
 	(global_label "3V3_SYS"
 		(shape bidirectional)
-		(at 90.64 47.46 0)
+		(at 90.64 52.54 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -851,7 +851,7 @@
 		)
 		(uuid "a10dfc02-ff75-4fbb-95ac-8dbdb12112c2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 95.64 47.46 0)
+			(at 95.64 52.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -922,7 +922,7 @@
 	)
 	(global_label "3V3_SYS"
 		(shape bidirectional)
-		(at 30 53.81 0)
+		(at 30 46.19 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -932,7 +932,7 @@
 		)
 		(uuid "9a2bbe3f-6f2a-4156-9a33-c95c5f9c39bd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 35 53.81 0)
+			(at 35 46.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -944,7 +944,7 @@
 	)
 	(global_label "GND"
 		(shape bidirectional)
-		(at 30 46.19 0)
+		(at 30 53.81 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -954,7 +954,7 @@
 		)
 		(uuid "bc3df078-c06b-4786-87c2-262aaed39924")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 35 46.19 0)
+			(at 35 53.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1003,7 +1003,7 @@
 	)
 	(global_label "MOTOR_BR_OUTP"
 		(shape bidirectional)
-		(at 42.38 92.54 0)
+		(at 42.38 87.46 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1013,7 +1013,7 @@
 		)
 		(uuid "53f91852-1bfc-4d6a-be06-feface9bb4f6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 47.38 92.54 0)
+			(at 47.38 87.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1025,7 +1025,7 @@
 	)
 	(global_label "MOTOR_BR_OUTN"
 		(shape bidirectional)
-		(at 42.38 87.46 0)
+		(at 42.38 92.54 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1035,7 +1035,7 @@
 		)
 		(uuid "dc8e203b-a5c2-4209-a350-b07771ebe53d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 47.38 87.46 0)
+			(at 47.38 92.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1099,7 +1099,7 @@
 	)
 	(global_label "MIC_BOT_WS"
 		(shape bidirectional)
-		(at 112.38 57.62 0)
+		(at 112.38 42.38 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1109,7 +1109,7 @@
 		)
 		(uuid "c98794ba-e476-4a38-8365-8598b40e0c9b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 57.62 0)
+			(at 117.38 42.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1121,7 +1121,7 @@
 	)
 	(global_label "MIC_BOT_SCK"
 		(shape bidirectional)
-		(at 112.38 55.08 0)
+		(at 112.38 44.92 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1131,7 +1131,7 @@
 		)
 		(uuid "71bdd1cd-0c40-4e1c-a0c1-8ea344aa12bf")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 55.08 0)
+			(at 117.38 44.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1143,7 +1143,7 @@
 	)
 	(global_label "MIC_BOT_SD"
 		(shape bidirectional)
-		(at 112.38 52.54 0)
+		(at 112.38 47.46 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1153,7 +1153,7 @@
 		)
 		(uuid "634e5473-8077-4bfc-8208-b3e05a22c55f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 52.54 0)
+			(at 117.38 47.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1187,7 +1187,7 @@
 	)
 	(global_label "GND"
 		(shape bidirectional)
-		(at 112.38 47.46 0)
+		(at 112.38 52.54 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1197,7 +1197,7 @@
 		)
 		(uuid "22cf8736-8110-4aeb-9bc9-0ae52710a2e9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 47.46 0)
+			(at 117.38 52.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1209,7 +1209,7 @@
 	)
 	(global_label "MOTOR_BR_OUTP"
 		(shape bidirectional)
-		(at 112.38 44.92 0)
+		(at 112.38 55.08 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1219,7 +1219,7 @@
 		)
 		(uuid "5fa75952-8b3b-4016-a5c3-a0487e9daf88")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 44.92 0)
+			(at 117.38 55.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1231,7 +1231,7 @@
 	)
 	(global_label "MOTOR_BR_OUTN"
 		(shape bidirectional)
-		(at 112.38 42.38 0)
+		(at 112.38 57.62 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1241,7 +1241,7 @@
 		)
 		(uuid "8426db4f-4c76-4cbe-b691-a1519a7d0b30")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 117.38 42.38 0)
+			(at 117.38 57.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)

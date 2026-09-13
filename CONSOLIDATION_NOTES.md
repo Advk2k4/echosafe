@@ -137,6 +137,24 @@ left out.
   pin spacing against multiple independent sources; 2.54mm/0.1"
   through-hole is standard, matching what was already assigned —
   worth a physical check against the actual board once it's in hand.
+- **(Critical fix, 2026-09-13) Session-wide Y-axis coordinate bug.**
+  Discovered KiCad is actually installed on this machine and ran real
+  `kicad-cli sch erc` against every schematic for the first time —
+  found that every label/wire/no-connect placed this session with a
+  nonzero local Y pin offset used the wrong sign (`placement_y +
+  local_y` instead of the correct `placement_y − local_y`, per
+  KiCad's Y-up-symbol/Y-down-sheet convention). Fixed via a from-
+  scratch single-pass correction across all 5 projects, verified by
+  ERC before/after (all 4 modules: 21/21/17/17 → 9/9/8/8 violations,
+  all now expected; central pod: down to 0 dangling labels / 0
+  genuinely unconnected pins). Also fixed along the way: the ESP32's
+  own 3V3/GND/EN pins had never been wired to anything (every
+  peripheral got connected, the MCU's own supply pins were missed) —
+  added the EN RC delay circuit per Espressif's actual hardware
+  design guidelines (fetched, R=10k/C=1uF), and tied #PWR01 (an
+  orphaned GND flag left over from the removed NPM1300) to GND. Full
+  writeup in CLAUDE.md's "Critical fix" section, including the
+  transform formula for anyone hand-editing .kicad_sch again.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8

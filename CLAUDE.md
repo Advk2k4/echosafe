@@ -264,6 +264,83 @@ file at all yet** — schematic capture only; KiCad creates one
 automatically the first time someone opens a board view for that project.
 `datasheets/` and `outputs/` are currently empty.
 
+### Critical fix: Y-axis coordinate bug affecting the entire session (2026-09-13)
+
+**KiCad is actually installed on this machine** (`/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli`,
+version 8.0.0) — discovered while starting PCB layout work, and immediately
+used to run real ERC (Electrical Rules Check) against every schematic from
+this session, instead of continuing to rely on the text-based checks
+(paren balance, UUID uniqueness, net endpoint counts) used until now. That
+was the right call: **every label, wire, and no-connect marker placed
+this session with a nonzero local Y pin offset was silently in the wrong
+position.**
+
+Root cause: KiCad symbol-library graphics are authored Y-up, but the
+schematic sheet is Y-down. For an unrotated, unmirrored placement, the
+correct transform from a symbol's local pin offset to its absolute sheet
+position is `abs_y = placement_y − local_y` — every script this session
+used `abs_y = placement_y + local_y`. The two only agree when local_y=0
+(which is why a few connections — like the very first mic pin checked
+early on — happened to look fine). Confirmed with real evidence, not
+guessed: `kicad-cli sch erc` flagged pins as unconnected exactly where
+the sign error would predict, and the labels intended for them were
+found sitting at the mirrored position.
+
+Fixed via a from-scratch, single-pass correction (not sequential in-place
+edits — an earlier attempt at that approach introduced a second bug,
+caught before committing: correcting one label's coordinate could make it
+collide with a not-yet-corrected label's original position, causing a
+later step to move the wrong element). The final approach computed every
+correction from an unmodified snapshot of each file, detected any
+old-position collisions between distinct pins up front, and applied all
+corrections in one pass.
+
+**Result, verified by real ERC, not by the tooling that produced the
+bug:**
+- All 4 module projects: 21/21/17/17 raw ERC violations → 9/9/8/8, all
+  of them expected (spare unused GPIO pins, the already-documented
+  placeholder-connector-symbol warning, and "power pin not driven"
+  errors that are the correct consequence of the multi-project split —
+  the driving component lives in a different project's file, which ERC
+  can't see into).
+- Central pod: 172 → ultimately 0 dangling labels and 0 genuinely
+  unconnected pins. Remaining ~200 ERC items are exclusively: pairwise
+  "pin_to_pin" type-mismatch warnings from many different IC pin types
+  legitimately sharing the `3V3_SYS`/`GND` rails (expected on any real
+  board with this many ICs on shared power), cosmetic "off-grid"
+  warnings, the placeholder-connector-symbol warning (×7, one per
+  `Conn_Harness_*` instance across all 5 projects), and spare/unused
+  pins (ESP32 GPIOs never wired to anything, TCA9548A mux channels 4-7
+  since only 4 of 8 channels are used).
+
+**A second, genuine gap surfaced by this same ERC pass, unrelated to the
+Y-axis bug:** the ESP32 module's own power pins — `3V3`, all 7 `GND`
+pins, and `EN`/CHIP_PU — had never actually been wired to anything. Every
+peripheral this session got carefully connected; the MCU's own supply
+pins were overlooked. Fixed:
+- `3V3` → `3V3_SYS`, all 7 `GND` pins → `GND`.
+- `EN` → a proper RC delay circuit (R1 10kΩ to `3V3_SYS`, C18 1µF to
+  `GND`), **R=10kΩ/C=1µF confirmed against Espressif's own ESP32-S3
+  Hardware Design Guidelines** (fetched, not recalled from memory) —
+  Espressif's guidance is explicit that CHIP_PU/EN must never be left
+  floating.
+- The `Device:R` symbol needed for R1 was pulled directly from KiCad's
+  own installed `Device.kicad_sym` (same file the running `kicad-cli`
+  uses), not reconstructed by analogy to `Device:C`.
+- Also found and fixed: `#PWR01`, a leftover `power:GND` flag symbol
+  from the original pre-consolidation schematic, was sitting completely
+  unconnected (an artifact of the removed NPM1300 section) — tied to
+  `GND`.
+
+**Practical takeaway if you extend this schematic by hand-editing
+`.kicad_sch` text again (rather than through KiCad's GUI):** for any
+placement at angle 0 with no mirror, remember `abs_y = placement_y −
+local_y`, not `+`. And prefer running `kicad-cli sch erc` on anything
+non-trivial over trusting invariant checks alone — it catches a category
+of bug (wrong absolute position, still syntactically valid, still
+internally self-consistent) that paren-balance and UUID-uniqueness
+checks structurally cannot.
+
 ### Power Architecture (current, as of 2026-09-11)
 
 ```
@@ -508,8 +585,12 @@ separate earbud cable.
    yet separate KiCad projects/sheets per physical board (see below).
 8. ~~Split into actual separate KiCad projects per physical board~~ —
    done (2026-09-12). See "Multi-Board Project Structure" below.
-9. PCB layout itself (still 0 footprints placed, 0 traces routed, in
-   all 5 projects).
+9. ~~Verify all 5 schematics with real ERC~~ — done (2026-09-13). Caught
+   and fixed a session-wide Y-axis coordinate bug plus an unpowered
+   ESP32 — see "Critical fix" section above. All 5 projects now verified
+   at 0 dangling labels / 0 genuinely-unconnected pins.
+10. PCB layout itself (still 0 footprints placed, 0 traces routed, in
+    all 5 projects).
 
 ### Multi-Board Project Structure (2026-09-12)
 
