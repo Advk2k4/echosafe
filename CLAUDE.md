@@ -635,11 +635,44 @@ KiCad doesn't automatically link separate projects' netlists. The actual
 electrical connection between a module and the pod is the physical cable;
 these matching connectors + net names are what tell you how to build it.
 
-### Footprints (2026-09-12)
+### Footprints (2026-09-12, mic footprint replaced 2026-09-13)
 
 Target: **compact near-final wearable** (confirmed with the user — not an
 early bring-up prototype), so choices below favor small/soldered over
 socketed/header where there was a real choice to make.
+
+**Mic footprint (`LGA_CAV_IVS`) replaced entirely — it didn't match the
+real part.** Discovered while starting PCB placement: the original
+SnapEDA-imported `LGA_CAV_IVS.kicad_mod` (pre-dates this session) has pad
+3 (GND) as a tiny 0.127×0.127mm corner pad, and a non-electrical
+mechanical hole occupying pad number "6" — pushing the real 6th
+electrical pad to number "7", one off from the schematic symbol's pin 6
+(SD). Checked against InvenSense's actual datasheet (DS-000069 Rev 1.0,
+fetched and read this session, not recalled): GND is really a large ring
+pad (Ø1.025mm inner / Ø1.625mm outer) surrounding the microphone's
+acoustic port, nothing like what the footprint had.
+
+Authored a new footprint (`ICS-43434_LGA6`, in a new library
+`Mics_Corrected.pretty` alongside the original `lib/symbols/` folder)
+using KiCad's own `pcbnew` Python API (bundled with this KiCad install,
+not hand-written S-expressions) directly from the datasheet's Figure 3
+(pin positions) and Figure 13 (land pattern dimensions): 5 roundrect
+signal pads (WS/LR/SCK/VDD/SD) at the datasheet's stated 0.6×0.9mm size
+and 0.9mm pitch, plus GND as a solid circular pad at the ring's outer
+diameter (1.625mm) — a deliberate simplification from the true annular
+ring, which is electrically equivalent but **does not include the
+board-level acoustic port hole** the datasheet also specifies (a drilled/
+routed opening through the PCB itself, ≥0.5mm diameter, centered under
+the GND pad) — that's a PCB-outline-level feature, not something a
+footprint file can express, and must be added by hand once real layout
+starts. Round-trip verified by reloading the saved file through
+`pcbnew.FootprintLoad()` and checking pad count/positions/shapes match.
+
+Updated: `fp-lib-table` in all 4 module projects to register the new
+library, and the `Footprint` property on MIC1-4 to
+`ICS-43434:ICS-43434_LGA6`. Re-ran ERC on all 4 modules afterward —
+unchanged (9/9/8/8), confirming this was purely a physical/PCB-level fix
+with no effect on schematic connectivity, as expected.
 
 **Fixed a regression first:** splitting into 5 projects had wiped the
 mic (`LGA_CAV_IVS`) and motor (`C0720B001F:XDCR_C0720B001F`) footprints

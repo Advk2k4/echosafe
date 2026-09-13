@@ -1,5 +1,5 @@
 (fp_lib_table
   (version 7)
-  (lib (name "ICS-43434")(type "KiCad")(uri "${KIPRJMOD}/../EchoSafe_RevA/lib/symbols/ul_ICS-43434/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "ICS-43434")(type "KiCad")(uri "${KIPRJMOD}/../EchoSafe_RevA/lib/symbols/Mics_Corrected.pretty")(options "")(descr "InvenSense ICS-43434 footprint authored this session from the real datasheet (DS-000069) -- see CLAUDE.md/CONSOLIDATION_NOTES.md for why the original SnapEDA-imported LGA_CAV_IVS footprint was replaced"))
   (lib (name "C0720B001F")(type "KiCad")(uri "${KIPRJMOD}/../EchoSafe_RevA/lib/symbols/C0720B001F")(options "")(descr ""))
 )

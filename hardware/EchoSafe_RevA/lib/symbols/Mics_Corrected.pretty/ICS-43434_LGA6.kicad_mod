@@ -1,0 +1,112 @@
+(footprint "ICS-43434_LGA6"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(descr "InvenSense ICS-43434 I2S MEMS microphone, 3.50x2.65x0.98mm LGA. Authored from InvenSense datasheet DS-000069 Rev 1.0 (2016-04-26), Figure 3 (pin configuration) and Figure 13 (PCB land pattern) -- fetched and verified this session, not from memory or the prior (incorrect) LGA_CAV_IVS import. GND (pin 3) simplified to a solid circular pad at the datasheet's outer ring diameter (1.625mm) rather than the true annular ring shown in Figure 13 -- electrically equivalent, but note the datasheet also calls for an actual drilled/routed acoustic port hole through the PCB at this pad's location (recommended >=0.5mm diameter) for the microphone to function -- that board-level cutout is NOT part of this footprint and must be added manually during PCB layout.")
+	(tags "microphone MEMS I2S ICS-43434")
+	(property "Reference" "REF**"
+		(at 0 -2.2 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "4a6336e2-7ab8-44b3-849e-e0dfd318d167")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Value" "ICS-43434_LGA6"
+		(at 0 2.2 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "86d9995b-612a-44ba-9344-665dfe4b0edf")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "16e320d5-f3d4-42c4-8c39-2faa12536205")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "66a12582-f3c7-4869-a47e-d83ead62269e")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c7a969d2-fee2-4d65-b398-40e0290de965")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at 0.9 0.45)
+		(size 0.6 0.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "4e1aabdd-2a9f-44c2-ad10-ee24931e29e8")
+	)
+	(pad "2" smd roundrect
+		(at 0.9 -0.45)
+		(size 0.6 0.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "78b68ac4-6b01-414f-83ef-a49be13e588e")
+	)
+	(pad "3" smd circle
+		(at 0 0)
+		(size 1.625 1.625)
+		(layers "F.Cu" "F.Mask")
+		(uuid "32b56b25-90bd-46a2-8960-9035a74ebb13")
+	)
+	(pad "4" smd roundrect
+		(at -0.9 -0.45)
+		(size 0.6 0.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "74afbc46-481b-49c8-88fb-a20ce20b52d1")
+	)
+	(pad "5" smd roundrect
+		(at -0.9 0.45)
+		(size 0.6 0.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "1b24323a-566e-478c-9f2e-58c6f5154c05")
+	)
+	(pad "6" smd roundrect
+		(at 0 0.45)
+		(size 0.6 0.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "8d347c08-27c6-4f0c-af3c-8653dca11d67")
+	)
+)

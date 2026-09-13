@@ -155,6 +155,21 @@ left out.
   orphaned GND flag left over from the removed NPM1300) to GND. Full
   writeup in CLAUDE.md's "Critical fix" section, including the
   transform formula for anyone hand-editing .kicad_sch again.
+- **(Replaced 2026-09-13) Mic footprint (`LGA_CAV_IVS`) didn't match
+  the real part.** Found while starting PCB placement: the original
+  SnapEDA-imported footprint (pre-dates this session) had GND as a
+  tiny 0.127mm corner pad and an off-by-one pad numbering issue
+  (a mechanical hole occupying pad "6", pushing the real 6th
+  electrical pad to "7"). Checked against InvenSense's actual
+  datasheet (DS-000069, fetched this session): GND is really a large
+  ring pad around the acoustic port. Authored a replacement footprint
+  (`ICS-43434_LGA6`) via KiCad's own `pcbnew` Python API directly from
+  the datasheet's dimensions, round-trip verified by reloading it.
+  Updated all 4 module projects' `fp-lib-table` and MIC1-4's
+  `Footprint` property. One thing not expressible in a footprint file:
+  the datasheet also calls for a drilled acoustic port hole through
+  the PCB itself at this location — flagged in CLAUDE.md as a manual
+  layout step, not something a footprint can encode.
 - **(Fixed 2026-09-11)** RevA was missing 3 of 4 DRV2605 haptic drivers and
   the TCA9548A I2C mux the firmware architecture requires. Added U5
   (TCA9548A, verified pinout from TI datasheet SCPS207F) and U6/U7/U8
