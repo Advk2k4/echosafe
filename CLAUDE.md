@@ -56,11 +56,13 @@ push here without asking first, every time.
   DRV2605L, TP4056 + LD1117V33 power chain) was routed, and then
   re-placed/re-routed from an initially oversized 260×175mm layout down
   to a genuinely compact 65×90mm one. Nothing has been fabricated yet.
-  **Not yet ready to actually order boards** — still needed: acoustic
-  port holes on the 4 mic modules (flagged in "Footprints" below, never
-  added), a visual/silkscreen review (nothing beyond DRC has been
-  visually checked), physical confirmation of the TP4056 module's real
-  footprint spacing, and generating the actual fab outputs (gerbers/
+  **Not yet ready to actually order boards** — still needed: a visual/
+  silkscreen review (nothing beyond DRC has been visually checked),
+  physical confirmation of the TP4056 module's real footprint spacing
+  and of the mic module's re-derived pad geometry (see "Footprints"
+  below — acoustic port holes are done, but both footprints are still
+  datasheet-derived, not measured against real parts), and generating
+  the actual fab outputs (gerbers/
   drill/BOM/CPL) — none exist yet. Bring-up right now still has to
   happen on a breadboard or dev-kit with jumper wiring, following the
   schematic's part choices and the pin mapping documented below.
@@ -725,9 +727,10 @@ services guarantee.
 **Not yet done, follow-up items:** a visual/silkscreen review (nothing
 has been visually inspected, only DRC-checked — reference designator
 placement, connector orientation for physical cable routing, and
-silkscreen legibility are all unverified), and the acoustic port holes
-for the 4 mic modules (see "Footprints" section above — still not
-added to any of the 4 module board outlines).
+silkscreen legibility are all unverified). The acoustic port holes for
+the 4 mic modules are now done — see "Footprints" section above for the
+hole itself plus a significant mic-footprint pad-position correction
+that surfaced while adding it.
 
 ### Multi-Board Project Structure (2026-09-12)
 
@@ -810,6 +813,82 @@ library, and the `Footprint` property on MIC1-4 to
 `ICS-43434:ICS-43434_LGA6`. Re-ran ERC on all 4 modules afterward —
 unchanged (9/9/8/8), confirming this was purely a physical/PCB-level fix
 with no effect on schematic connectivity, as expected.
+
+**Pad positions were actually wrong, found and fixed 2026-09-15.** The
+"0.9mm pitch" description above doesn't match what the footprint file
+actually contained — the 5 signal pads were placed in a simple 2×2-
+corner-plus-one arrangement (offsets ±1.3/±1.2mm) that doesn't match the
+real chip at all. Found while trying to add the acoustic port hole: the
+hole's clearance to a nearby pad exposed that the pad layout's *shape*,
+not just its exact spacing, was wrong. Re-derived the correct layout
+directly from the datasheet's mechanical package drawing (DS-000069
+Rev 1.2, Figure 15 — a precise, corner-referenced drawing, far more
+reliable than Figure 3's simplified pin icon), measuring pad positions
+via pixel-level connected-component analysis of a 400dpi render rather
+than reading dimension lines by eye a second time. Cross-validated
+several ways before trusting it: the reconstructed package width from
+the pad spacing matched Figure 15's separately-dimensioned 2.65mm body
+width exactly; the "PIN #1 REFERENCE CORNER" marker confirmed WS's
+position; and an initial version (LR placed at the ring's own
+centerline) was caught and corrected by a second pixel-measurement pass
+after the first version's LR-to-ring spacing didn't hold up. Real
+correct layout (local offsets from the GND ring's center, which stays
+at the footprint's own origin): **WS** (0.9, -1.127), **LR** (0.9,
+-0.305), **SCK** (-0.9, -0.305), **VDD** (-0.9, -1.127), **SD** (0,
+-1.127); pad size 0.6×0.522mm (not 0.6×0.9 — 0.9 was actually the row
+pitch, not a pad dimension).
+
+Also found via the same datasheet page: the acoustic port's real sound
+port diameter is 0.375mm (InvenSense's own mechanical drawing gives
+this number directly), consistent with the datasheet text's "PCB hole
+should exceed the sound port diameter, 0.5mm minimum recommended."
+
+**GND ring rebuilt as a true annulus** (was a solid disc, per the
+"deliberate simplification" noted above) so the acoustic hole has real
+copper-free clearance, and **its outer diameter was shaved from the
+datasheet's 1.625mm down to 1.1mm.** At the full 1.625mm OD the ring
+genuinely overlaps the SCK/LR pads' nearest corners (confirmed by
+direct geometry, held up after the position correction above) — this
+wasn't a rounding artifact, it's a real chip-scale-pitch tightness the
+datasheet's own land pattern doesn't leave much room for once a
+board-level hole is added into the same footprint. 1.1mm was chosen as
+the smallest reduction that clears the overlap with a small positive
+margin, not shrunk further than necessary.
+
+Even at the corrected geometry, the ring/SCK/LR spacing (~0.07mm) and
+the ring/hole spacing are both tighter than this board's generic 0.2mm
+netclass clearance and 0.25mm hole clearance rules assume — legitimate
+chip-scale pitch, not a mistake (same situation as the SPK_OUTN QFN
+escape on the central pod). KiCad's custom-rule condition syntax for
+scoping an exception to just this footprint (`A.Reference`,
+`Library_Id` matching, and a dedicated `PCB_GROUP` + `memberOf()` were
+all tried against real DRC output) didn't reliably match pad-level DRC
+items in this KiCad version, so each of the 4 module projects has a
+board-wide `<project>.kicad_dru` rule instead (`Chip-scale mic
+footprint spacing`, clearance/hole_clearance min 0.01mm/0mm) — reviewed
+against the full violation list each time to confirm nothing else on
+these small (4-5 component) boards relies on the relaxed threshold.
+
+One more subtlety: the custom ring pad's "anchor" sub-shape (required
+by KiCad's custom-pad model, normally centered on the pad) was flagging
+a `solder_mask_bridge` violation against the acoustic hole even after
+shrinking it to near-zero size, because this board's solder mask margin
+is 0 (apertures exactly match copper) and an anchor sitting exactly
+inside another net's hole reads as one mask aperture wholly enclosed in
+another's, regardless of size. Fixed by moving the anchor 0.35mm off
+the ring's true center (into the copper-free gap between the hole and
+the ring's inner edge) while keeping the ring polygon itself exactly
+where it was — the anchor doesn't need to touch the primitive shape to
+count as the same electrical pad.
+
+**Net result:** all 4 module boards re-routed from scratch after the
+pad reposition (same FreeRouting pipeline as the central pod) and
+re-verified via `kicad-cli pcb drc`: **0 violations, 0 unconnected
+pads** on every board. This is a substantial re-derivation with real,
+documented cross-checks, but — like the TP4056 footprint — it's still
+not a physical measurement. Worth a direct comparison against a real
+ICS-43434 part or a verified purchased footprint before fabricating the
+mic modules specifically.
 
 **Fixed a regression first:** splitting into 5 projects had wiped the
 mic (`LGA_CAV_IVS`) and motor (`C0720B001F:XDCR_C0720B001F`) footprints
