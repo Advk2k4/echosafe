@@ -507,7 +507,11 @@ these were assumptions, not verified facts, until confirmed:
   after, same categories throughout (off-grid warnings and pin-to-pin
   type-mismatch warnings on shared rails, both already expected/
   documented above) — no new unconnected pins or dangling labels
-  introduced.
+  introduced. **PCB re-synced to match (2026-09-15):** R2 (cloned from
+  R1's real footprint) placed near U5, the old direct RESET-to-3V3_SYS
+  spur removed, and RESET/3V3_SYS rerouted through it on a new
+  `TCA_RESET` net. Verified via `kicad-cli pcb drc`: 0 violations / 0
+  unconnected pads.
 - **DRV2605 IN/TRIG → GND** (firmware uses `DRV2605_MODE_INTTRIG` via I2C,
   so this pin's physical state doesn't matter functionally, but leaving a
   digital input floating is bad practice).
@@ -762,7 +766,7 @@ standard-library footprints from earlier this session
 | All 17 capacitors | `Capacitor_SMD:C_0603_1608Metric` | 0603 — small enough for a wearable, still hand-solderable |
 | BT1 (battery) | `Connector_JST:JST_PH_S2B_PH_K_1x02_P2.00mm_Horizontal` | Confirmed with user: this battery ships with a pre-attached JST-PH connector |
 | LD1 (LD1117V33 breakout) | `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical` | Represents the breakout's actual 0.1" hole pattern — used regardless of whether pins or direct wire are soldered in |
-| J1 central pod (TP4056 module) | `Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical` | Placeholder for BAT+/BAT-/OUT+/OUT- pad pattern — **verify against the actual purchased HiLetGo board**, hole spacing varies between board revisions sold under that listing |
+| J1 central pod (TP4056 module) | `TP4056_Module:TP4056_Module` (custom, see below) | 4 through-hole pads matching the module's real single-column layout, spacing estimated from research — **still verify against the actual purchased HiLetGo board once in hand** |
 | J2/J3 (pod, 9-pin) + FrontLeft/FrontRight module J1 | `Connector_JST:JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal` | JST-SH (1.0mm pitch) chosen for the compact-wearable target — 9 conductors at 2.54mm would be too bulky for a headband |
 | J4/J5 (pod, 7-pin) + RearLeft/RearRight module J1 | `Connector_JST:JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal` | Same reasoning, 7-pin variant |
 
@@ -775,14 +779,50 @@ count (`JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal` = 9 signal pads
 7 signal pads + 2 mounting pads) and fixed all 8 occurrences across all
 5 projects (J2/J3/J4/J5 in the central pod, one `J1` per module).
 
-**TP4056 pin spacing checked (2026-09-13):** couldn't pin down exact
-dimensions for the specific HiLetGo listing, but multiple independent
-sources agree 2.54mm/0.1" through-hole pitch is standard across common
-TP4056 module variants (some SMD-pad variants exist too) — the
-`PinHeader_1x04_P2.54mm_Vertical` placeholder already assigned matches
-the common case. Still worth a 30-second check against the physical
-board once it's in hand, since "TP4056 HiLetGo" covers slightly
-different board revisions.
+**TP4056 footprint replaced with a real custom part, not a generic header
+(2026-09-15).** The original `PinHeader_1x04_P2.54mm_Vertical` placeholder
+(checked 2026-09-13, single row, uniform 2.54mm pitch) turned out to be
+the wrong *shape*, not just an unverified pitch number. Found the exact
+purchased listing ([Amazon B07PKND8KG](https://www.amazon.com/HiLetgo-Lithium-Charging-Protection-Functions/dp/B07PKND8KG))
+and read its product photos directly (zoomed via browser automation,
+since the photos are only 336×313px) — confirmed the board's 4 pads
+(`B+`, `B-`, `OUT+`, `OUT-`) sit in a single vertical column on one edge,
+not a spread-out header. Corroborated by a second, independent source:
+[ccadic/TP4056-18650](https://github.com/ccadic/TP4056-18650), a real
+measured KiCad footprint for a board from the same reference-design
+family (identical chip markings/silkscreen layout), giving actual pad
+Y-positions 1.7 / 5.2 / 12.8 / 16.2mm — i.e. gaps of 3.5mm (Out+ to B+),
+7.6mm (B+ to B-, where the IC/passives sit), 3.4mm (B- to Out-). A
+third source (Addicore's TP4056/TC4056A datasheet PDF, same reference-
+design family) confirms the same pin *order* top-to-bottom: OUT+, B+,
+B-, OUT-.
+
+Built a custom footprint (`TP4056_Module:TP4056_Module`, in
+`hardware/EchoSafe_RevA/lib/symbols/TP4056_Module.pretty/`, authored via
+`pcbnew` Python API same as the mic footprint) using this data: 4 round
+through-hole pads (1.7mm pad / 1.0mm drill — a reasonable size estimate
+for this class of part, not measured), positioned at the researched
+relative spacing. Pad numbers assigned to match the schematic symbol's
+pin numbers (1=BAT+, 2=BAT-, 3=OUT+, 4=OUT-), independent of the
+physical top-to-bottom order, with the real signal names kept on the
+silkscreen for a human reading the board. Registered in the central
+pod's `fp-lib-table` and assigned to J1.
+
+**This is still a best estimate, not a physical measurement** — board
+outline dimensions vary slightly even across this same reference-design
+family (26mm vs 28mm length seen across sources), so the pad spacing
+could be off by a small amount from the specific unit that arrives.
+Confirm against the physical board once available; the footprint is a
+straightforward edit if it needs adjusting (same pattern as the mic
+footprint fix from 2026-09-13).
+
+**PCB re-synced to match (2026-09-15):** J1's PCB footprint was swapped
+and its 4 nets (`VBAT`, `GND`, `VSYS`, `GND`) rerouted to the new pad
+positions — pad "2" (BAT-/GND) was kept at its exact old location since
+it had the most complex existing local routing, and the other 3 pads'
+simpler single-segment traces were redrawn around it. Verified via
+`kicad-cli pcb drc`: 0 violations / 0 unconnected pads, same as every
+other board in this project.
 
 **LS1/LS2 (speakers) assigned (2026-09-13):** [DigiKey 1528-4227-ND](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140)
 = Adafruit #4227 "Mini Oval Speaker," 8Ω, 1W, 30×20×5mm, verified via

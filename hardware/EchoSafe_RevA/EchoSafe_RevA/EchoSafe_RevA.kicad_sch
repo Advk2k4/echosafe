@@ -6537,7 +6537,7 @@
 			(at 182.38 1.11 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
+		(property "Footprint" "TP4056_Module:TP4056_Module"
 			(at 190 10 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -6545,7 +6545,7 @@
 			(at 190 10 0)
 			(effects (font (size 1.27 1.27)) (hide yes))
 		)
-		(property "Description" "HiLetGo TP4056 Li-ion charger module w/ protection"
+		(property "Description" "HiLetGo TP4056 Li-ion charger module w/ protection -- footprint pin spacing is a best estimate from research (not the physical board), see CLAUDE.md"
 			(at 190 10 0)
 			(effects (font (size 1.27 1.27)) (hide yes))
 		)

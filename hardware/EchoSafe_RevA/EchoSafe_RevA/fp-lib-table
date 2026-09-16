@@ -2,4 +2,5 @@
   (version 7)
   (lib (name "ESP32-S3-WROOM-1")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/KiCADv6/footprints.pretty")(options "")(descr ""))
   (lib (name "MAX98357AETE-T")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/ul_MAX98357AETE-T/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "TP4056_Module")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/TP4056_Module.pretty")(options "")(descr ""))
 )
