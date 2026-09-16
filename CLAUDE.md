@@ -59,16 +59,17 @@ push here without asking first, every time.
   TP4056 + LD1117V33 power chain) was routed, re-placed/re-routed from an
   initially oversized 260×175mm layout down to a genuinely compact
   65×90mm one, and then visually audited for silkscreen legibility and
-  footprint-library hygiene. Nothing has been fabricated yet.
+  footprint-library hygiene. **Fab outputs (gerbers, drill files, CPL,
+  BOM) are now generated for all 5 boards** — see "Fab Outputs" below.
+  Nothing has been physically fabricated yet.
   **Not yet ready to actually order boards** — still needed: physical
   confirmation of the TP4056 module's real footprint spacing and of the
   mic module's re-derived pad geometry (see "Footprints" below —
   acoustic port holes are done, but both footprints are still
-  datasheet-derived, not measured against real parts), and generating
-  the actual fab outputs (gerbers/
-  drill/BOM/CPL) — none exist yet. Bring-up right now still has to
-  happen on a breadboard or dev-kit with jumper wiring, following the
-  schematic's part choices and the pin mapping documented below.
+  datasheet-derived, not measured against real parts). Bring-up right
+  now still has to happen on a breadboard or dev-kit with jumper wiring,
+  following the schematic's part choices and the pin mapping documented
+  below.
 
 ---
 
@@ -893,6 +894,79 @@ and addressed (2026-09-16 follow-up):**
   fully legible on the bare board before assembly. The "hidden after
   assembly" tradeoff itself is unchanged and, per the original note,
   common practice for a component this large and unambiguous.
+
+### Fab Outputs (2026-09-16)
+
+Generated for all 5 boards via `kicad-cli` (not KiCad's GUI plot dialog —
+scripted the same way as every other batch operation this project), into
+each project's own `outputs/` folder (`hardware/<Project>/outputs/`,
+matching the folder the central pod already had reserved and empty since
+the original consolidation):
+
+- **Gerbers** (`outputs/gerbers/*.gtl/.gbl/.gto/.gbo/.gts/.gbs/.gtp/.gbp/.gm1`):
+  `kicad-cli pcb export gerbers`, standard 2-layer fab set — F.Cu, B.Cu,
+  F.SilkS, B.SilkS, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts. Confirmed
+  2-layer (not 4) by checking the `.kicad_pcb` layer table directly rather
+  than assuming.
+- **Drill files** (`outputs/gerbers/*.drl` + `*_map.pdf`):
+  `kicad-cli pcb export drill`, Excellon format, PTH and NPTH generated as
+  **separate files** (`--excellon-separate-th`) since the mic modules have
+  a real NPTH hole (H1, the acoustic port) alongside ordinary plated
+  through-holes — spot-checked `EchoSafe_FrontLeft-NPTH.drl` directly and
+  confirmed it contains exactly one 0.5mm hole at H1's actual board
+  position. A PDF drill map was generated alongside for a human-readable
+  cross-check.
+- **CPL / position files** (`outputs/<Project>-CPL.csv`):
+  `kicad-cli pcb export pos`, CSV, mm, both sides (front-only in practice
+  on every board here, but generated with `--side both` rather than
+  assuming).
+- **BOM** (`outputs/<Project>-BOM.csv`): `kicad-cli sch export bom` — from
+  each project's `.kicad_sch`, not the `.kicad_pcb` (the BOM is a
+  schematic-level concept; footprint info in it reflects the schematic
+  symbol's `Footprint` field, not whatever's actually placed on the
+  board — see the mismatch this caught, below). Grouped by Value+Footprint
+  so identical parts (e.g. the central pod's 8× 1µF 0603 caps) collapse to
+  one BOM line with a Qty column instead of 8 separate rows.
+- **Zipped gerber+drill bundle** (`outputs/<Project>-gerbers.zip`): the
+  full contents of `outputs/gerbers/` zipped together, ready to upload
+  as-is to a fab (JLCPCB, OSH Park, etc. all accept one combined zip).
+
+**Real bug this caught:** generating the central pod's BOM surfaced that
+J2/J3/J4/J5's schematic `Footprint` field still pointed at the *stock*
+`Connector_JST:JST_SH_SM0xB-SRSS-TB_...` footprint, not the
+`Connectors_PinMarked:...` override created during the Visual/Silkscreen
+Review above — because that review only edited footprint instances
+already placed on each `.kicad_pcb`, never the originating schematic
+symbols' `Footprint` property. This was more than cosmetic: KiCad's
+"Update PCB from Schematic" action pushes the schematic's `Footprint`
+field onto the board, so left alone, the *next* such sync (by a human, or
+a future script) would have silently reverted every connector back to the
+un-marked stock footprint, undoing that fix without any error or warning.
+Same risk existed for LS1 (front modules) and J1 (all 4 modules). Fixed
+by updating the `Footprint` property on the affected symbols in each
+`.kicad_sch` to the `Connectors_PinMarked:` library, confirmed via
+`kicad-cli sch erc` that violation counts on all 5 schematics still
+exactly match the documented baseline (210/9/9/8/8 — see "Critical fix:
+Y-axis coordinate bug" above), i.e. this was a metadata-only change with
+no electrical effect, then re-generated all 5 BOMs and confirmed the
+`Footprint` column now matches what's actually on each board. MIC1/M1
+(`ICS-43434`/`C0720B001F` libraries) needed no equivalent fix — those
+footprints were corrected in place in their existing library files during
+earlier work, so their library *name* never changed, only their
+geometry — and H1 (the acoustic port) has no schematic symbol at all
+(it's a PCB-only mechanical feature, never modeled electrically), so
+there's no `Footprint` field for it to go stale.
+
+All 5 boards reconfirmed at **0 DRC violations at full severity**
+(`kicad-cli pcb drc --severity-all`) after the fab-output generation and
+the schematic Footprint-field fix.
+
+**Not yet done:** these outputs have not been uploaded to or reviewed by
+an actual fab service (JLCPCB, OSH Park, etc.) — that's the natural next
+check (their gerber viewers often catch things kicad-cli's own DRC
+doesn't, like acid-trap corners or fab-specific minimum feature size). The
+TP4056/mic-footprint physical-verification caveats from "Footprints"
+above still stand and should happen before committing to an order.
 
 ### Multi-Board Project Structure (2026-09-12)
 

@@ -1199,7 +1199,7 @@
 			(at 50 126 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_Molex:Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal"
+		(property "Footprint" "Connectors_PinMarked:Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal"
 			(at 50 120 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)
@@ -1288,7 +1288,7 @@
 			(at 120 56 0)
 			(effects (font (size 1.27 1.27)) (justify left))
 		)
-		(property "Footprint" "Connector_JST:JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
+		(property "Footprint" "Connectors_PinMarked:JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal"
 			(at 120 50 0)
 			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
 		)

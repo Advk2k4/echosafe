@@ -1,0 +1,6 @@
+"Refs","Value","Footprint","Qty","DNP"
+"C9","1uF","Capacitor_SMD:C_0603_1608Metric","1",""
+"J1","Conn_Harness_09","Connectors_PinMarked:JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal","1",""
+"LS1","Adafruit_4227_8ohm_1W","Connectors_PinMarked:Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal","1",""
+"M1","C0720B001F","C0720B001F:XDCR_C0720B001F","1",""
+"MIC1","ICS-43434","ICS-43434:ICS-43434_LGA6","1",""
