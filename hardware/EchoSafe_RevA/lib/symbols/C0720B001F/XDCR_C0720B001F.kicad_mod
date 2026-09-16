@@ -3,7 +3,7 @@
   (descr "")
   (attr smd)
   (fp_text reference REF** (at -1.10326 -6.51915 0) (layer F.SilkS)
-    (effects (font (size 0.789716535433 0.789716535433) (thickness 0.15)))
+    (effects (font (size 1.0 1.0) (thickness 0.15)))
   )
   (fp_text value XDCR_C0720B001F (at 4.805415 7.108045 0) (layer F.Fab)
     (effects (font (size 0.788291338583 0.788291338583) (thickness 0.15)))

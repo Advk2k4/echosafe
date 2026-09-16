@@ -49,18 +49,21 @@ push here without asking first, every time.
   never be selected correctly) until the hardware fault itself is fixed.
 - **Hardware:** `hardware/` holds 5 KiCad projects (4 small earpiece
   modules + 1 central pod), all with complete schematics **and now fully
-  placed, routed, DRC-clean PCB layouts** (0 violations, 0 unconnected
-  pads on every board, verified via `kicad-cli pcb drc`) — see "PCB
-  Layout" and "Central Pod Resize" under the `hardware/` section below
-  for how the central pod (ESP32-S3-WROOM-1, MAX98357A, TCA9548A, 4×
-  DRV2605L, TP4056 + LD1117V33 power chain) was routed, and then
-  re-placed/re-routed from an initially oversized 260×175mm layout down
-  to a genuinely compact 65×90mm one. Nothing has been fabricated yet.
-  **Not yet ready to actually order boards** — still needed: a visual/
-  silkscreen review (nothing beyond DRC has been visually checked),
-  physical confirmation of the TP4056 module's real footprint spacing
-  and of the mic module's re-derived pad geometry (see "Footprints"
-  below — acoustic port holes are done, but both footprints are still
+  placed, routed, DRC-clean PCB layouts** (0 violations at full DRC
+  severity — including the silkscreen-specific `silk_over_copper`/
+  `silk_overlap`/`text_height` checks, not just the default error-level
+  set — 0 unconnected pads on every board, verified via `kicad-cli pcb
+  drc --severity-all`) — see "PCB Layout", "Central Pod Resize", and
+  "Visual/Silkscreen Review" under the `hardware/` section below for how
+  the central pod (ESP32-S3-WROOM-1, MAX98357A, TCA9548A, 4× DRV2605L,
+  TP4056 + LD1117V33 power chain) was routed, re-placed/re-routed from an
+  initially oversized 260×175mm layout down to a genuinely compact
+  65×90mm one, and then visually audited for silkscreen legibility and
+  footprint-library hygiene. Nothing has been fabricated yet.
+  **Not yet ready to actually order boards** — still needed: physical
+  confirmation of the TP4056 module's real footprint spacing and of the
+  mic module's re-derived pad geometry (see "Footprints" below —
+  acoustic port holes are done, but both footprints are still
   datasheet-derived, not measured against real parts), and generating
   the actual fab outputs (gerbers/
   drill/BOM/CPL) — none exist yet. Bring-up right now still has to
@@ -724,13 +727,139 @@ comfortably within standard fab capability, and notably avoids the
 QFN escape, which was at the edge of what typical prototype fab
 services guarantee.
 
-**Not yet done, follow-up items:** a visual/silkscreen review (nothing
-has been visually inspected, only DRC-checked — reference designator
-placement, connector orientation for physical cable routing, and
-silkscreen legibility are all unverified). The acoustic port holes for
-the 4 mic modules are now done — see "Footprints" section above for the
-hole itself plus a significant mic-footprint pad-position correction
-that surfaced while adding it.
+**Not yet done, follow-up items:** the visual/silkscreen review below is
+now done. The acoustic port holes for the 4 mic modules are now done —
+see "Footprints" section above for the hole itself plus a significant
+mic-footprint pad-position correction that surfaced while adding it.
+
+### Visual/Silkscreen Review (2026-09-16)
+
+Nothing beyond default-severity DRC had ever been visually inspected on
+any of the 5 boards. Two tools made this a real review instead of eyeballing
+screenshots:
+
+1. **`kicad-cli pcb drc --severity-all`** (not the plain `kicad-cli pcb
+   drc` used everywhere earlier in this project) — KiCad has dedicated
+   silkscreen DRC rules (`silk_over_copper` = silkscreen clipped by a
+   solder mask opening, `silk_overlap` = two silkscreen items
+   overlapping, `text_height` = text smaller than the board's minimum)
+   that are all **warning-severity and excluded by default**. Every
+   earlier "0 DRC violations" claim in this file was true but incomplete
+   — it never actually checked silkscreen. Re-running with
+   `--severity-all` immediately surfaced real, specific violations with
+   exact coordinates, on every board.
+2. **`kicad-cli pcb export svg`** (with `--exclude-drawing-sheet` and
+   `-l F.SilkS,Edge.Cuts` or `F.Cu,F.SilkS,Edge.Cuts`) rendered to PNG via
+   `rsvg-convert` (installed this session — `brew install librsvg`, no
+   SVG-to-raster tool existed on this machine before). Doing this
+   distinguished **real printed silkscreen** (F.SilkS — reference
+   designators, a handful of footprint outlines) from **assembly
+   documentation that never gets printed on the physical board**
+   (F.Fab — value text, pin-1 triangles, courtyard boxes). An earlier,
+   sloppier render that mixed F.Fab and F.SilkS together made the board
+   look far more cluttered than it actually is, and had to be redone.
+
+**Findings and fixes, all verified by re-running `kicad-cli pcb drc
+--severity-all` after each fix (all 5 boards now show 0 violations at
+full severity, not just the default error-level set):**
+
+- **Every placed footprint on all 5 boards had lost its library prefix**
+  (`lib_footprint_issues`, ~30 instances on the central pod alone) — each
+  `(footprint "...")` declaration in every `.kicad_pcb` had a bare name
+  with no `Library:` prefix (e.g. `(footprint "ICS-43434_LGA6"` instead
+  of `(footprint "ICS-43434:ICS-43434_LGA6"`), even though the correct
+  `fp-lib-table` registrations existed. This is the same class of gap
+  documented earlier under "Footprints" (fp-lib-table never existed,
+  fixed 2026-09-12) — evidently every subsequent script that reloaded and
+  re-saved a footprint via pcbnew's Python API (the central pod resize,
+  the mic pad-position fix, the TP4056 footprint swap) dropped the
+  library nickname again on save, since `FootprintLoad()`/re-adding a
+  footprint to a board doesn't automatically preserve it — `SetFPID()`
+  has to be called explicitly with the full `Library:Name` pair. Fixed
+  with a script (`/tmp/pcb_build/fix_fpid_prefix.py`) that maps every
+  bare footprint name on every board to its correct library nickname
+  (cross-checked against each project's `fp-lib-table` and, for standard
+  parts, KiCad's own global `fp-lib-table`) and calls `SetFPID()`
+  explicitly. **Practical takeaway for any future script that moves a
+  footprint onto/off of a board via pcbnew's Python API: always call
+  `SetFPID(pcbnew.LIB_ID(lib, name))` explicitly after `FootprintLoad()`
+  or after re-adding a footprint — never assume it survives a
+  `board.Add()`/`board.Save()` round-trip.**
+- **The custom `TP4056_Module` footprint (J1 on the central pod) had two
+  real authoring bugs**, found via `silk_over_copper`/`silk_overlap` and
+  confirmed visually: (1) all 4 through-hole pads listed `F.SilkS` in
+  their own `layers` set, which made each pad's copper literally *be*
+  silkscreen too — an automatic, guaranteed self-violation on every pad,
+  not a spacing issue. Standard KiCad THT pads should only list
+  `*.Cu`/`*.Mask`. (2) The four pin-function labels (`B+`/`B-`/`OUT+`/
+  `OUT-`) were center-justified at x=2.2mm against a silkscreen outline
+  rectangle ending at x=1.5mm, so — because KiCad's default `fp_text`
+  justification is centered, not left — each label's rendered span
+  straddled the rectangle edge and, for the top/bottom pins, the pad's
+  own solder mask opening. Fixed in the library file
+  (`hardware/EchoSafe_RevA/lib/symbols/TP4056_Module.pretty/TP4056_Module.kicad_mod`):
+  dropped `F.SilkS` from all 4 pads, moved the reference designator from
+  beside the pins to above the part body (`(at 0 -3 0)`), and moved the
+  4 pin labels to `x=1.9` with explicit `(justify left)` so they start
+  just past the outline instead of straddling it. The placed J1 instance
+  on the central pod was re-synced from the fixed library footprint
+  (reloaded via `PCB_IO_KICAD_SEXPR.FootprintLoad()`, position/rotation/
+  net-per-pad copied across, old instance removed) rather than hand-
+  patched — same pattern used for every other footprint fix this
+  session.
+- **H1 (the acoustic port hole)'s reference designator text sat directly
+  on top of MIC1's own pads** on all 4 mic modules — visually confirmed
+  (not just DRC) via the puresilk render. The `Acoustic_Port_0.5mm`
+  library footprint placed its "H1" reference at local `(2, 0)`, 2mm off
+  the hole's center — close enough to overlap the mic's WS/LR pads and
+  GND ring at this part's chip-scale pitch. Moved to `(0, 1.6, 0)`,
+  clear of the ring (0.55mm outer radius) and every signal pad. Re-synced
+  onto all 4 module boards the same way as the TP4056 fix above.
+- **M1 (the motor)'s reference designator text was 0.7897mm tall against
+  a 0.8mm board minimum** (`text_height`) — a leftover odd value
+  (0.789716535433mm, clearly an inch-to-mm conversion artifact) from
+  whatever originally produced `XDCR_C0720B001F.kicad_mod`. Bumped to an
+  even 1.0mm in the library file, matching the size used elsewhere on
+  these boards. Re-synced onto all 4 module boards.
+- **Two silkscreen items on the central pod overlapped a neighboring
+  component's silkscreen purely from placement density**, not a
+  footprint-authoring bug: U2 (MAX98357A, a QFN16)'s reference sat
+  exactly on the part's own center-pad — the QFN's exposed thermal pad —
+  because the imported footprint places the reference at the part
+  origin; moved it to `(30, 70.6)`, just below the package, in open board
+  area. C8's reference (a 0603 decoupling cap only ~2mm from its neighbor
+  C4) landed on top of C4's silkscreen outline; moved to the opposite
+  side of C8 from C4, into open board area. Both are simple text
+  repositions — no copper, footprint, or net impact.
+- **U1 (ESP32-S3-WROOM-1) and U2 (MAX98357A) each had a literal duplicate
+  `*` text object at the exact same F.Silkscreen coordinate** (visible in
+  a raw pcbnew dump of each footprint's graphical items, two coincident
+  objects with identical text/position) — an authoring artifact of the
+  third-party UltraLibrarian-exported footprint files
+  (`ESP32-S3-WROOM-1_EXP.kicad_mod`, `21-0136I_T1633-4_MXM.kicad_mod`),
+  not something introduced this session. Harmless visually (perfectly
+  coincident, so nothing was actually rendered twice) but flagged by
+  `silk_overlap` as a literal self-overlap. Removed the duplicate copy on
+  each, keeping one.
+- **Not fixed, flagged instead:** J1 (harness connector) and LS1 (speaker
+  connector) on the mic modules have a pin-1 orientation triangle on
+  F.Fab (assembly documentation) but **not on F.SilkS** — nothing marks
+  pin 1 on the physically-printed board. Left alone deliberately, since
+  fixing it would mean hand-editing KiCad's own shared global library
+  footprints (`Connector_JST`, `Connector_Molex`), not a project-local
+  file. Both connectors have keyed/friction-lock housings on the cable
+  side, so this doesn't risk a backwards *cable* mating, but it does mean
+  nothing on the silkscreen tells an assembler which way to orient the
+  receptacle itself when hand-soldering it onto the board. Worth adding a
+  small silkscreen pin-1 marker as a project-local footprint override
+  before hand-assembly, if it turns out to matter in practice.
+- **Not fixed, flagged instead:** U1 (ESP32-S3-WROOM-1)'s reference
+  designator sits inside the module's own footprint outline, meaning it
+  will be completely hidden once the RF module is soldered on top of it.
+  Cosmetic only (U1 is unambiguous — there's only one giant RF module
+  footprint on the board — and many real designs accept this same
+  tradeoff for a component this large/recognizable), left as-is rather
+  than guessing at a better position without a full layout re-check.
 
 ### Multi-Board Project Structure (2026-09-12)
 
