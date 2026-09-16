@@ -51,13 +51,19 @@ push here without asking first, every time.
   modules + 1 central pod), all with complete schematics **and now fully
   placed, routed, DRC-clean PCB layouts** (0 violations, 0 unconnected
   pads on every board, verified via `kicad-cli pcb drc`) — see "PCB
-  Layout" under the `hardware/` section below for how the central pod
-  (ESP32-S3-WROOM-1, MAX98357A, TCA9548A, 4× DRV2605L, TP4056 + LD1117V33
-  power chain) was routed. Nothing has been fabricated yet. Bring-up
-  right now still has to happen on a breadboard or dev-kit with jumper
-  wiring, following the schematic's part choices and the pin mapping
-  documented below — the PCB files are ready for fab but haven't been
-  ordered/assembled.
+  Layout" and "Central Pod Resize" under the `hardware/` section below
+  for how the central pod (ESP32-S3-WROOM-1, MAX98357A, TCA9548A, 4×
+  DRV2605L, TP4056 + LD1117V33 power chain) was routed, and then
+  re-placed/re-routed from an initially oversized 260×175mm layout down
+  to a genuinely compact 65×90mm one. Nothing has been fabricated yet.
+  **Not yet ready to actually order boards** — still needed: acoustic
+  port holes on the 4 mic modules (flagged in "Footprints" below, never
+  added), a visual/silkscreen review (nothing beyond DRC has been
+  visually checked), physical confirmation of the TP4056 module's real
+  footprint spacing, and generating the actual fab outputs (gerbers/
+  drill/BOM/CPL) — none exist yet. Bring-up right now still has to
+  happen on a breadboard or dev-kit with jumper wiring, following the
+  schematic's part choices and the pin mapping documented below.
 
 ---
 
@@ -656,6 +662,72 @@ All 5 boards are placed, routed, and DRC-clean:
   and FreeRouting itself were installed to make this possible — see git
   history for the full sequence of fix scripts if reconstructing this
   process is ever needed again.
+
+### Central Pod Resize (2026-09-15)
+
+**The central pod's board outline was never sized to the design** — the
+DRC-driven routing process above (both the hand-written attempt and the
+FreeRouting pass) had no board-size constraint, so components and traces
+were free to spread across whatever area was convenient for clearance.
+The result was technically DRC-clean but **260mm × 175mm**, with real
+component/trace extent of 150mm × 171mm — tablet-sized, nowhere near a
+"compact wearable pod." This was caught during a pre-fab-order audit,
+not during layout itself.
+
+**Fixed: re-placed and re-routed to 65mm × 90mm** (~7.8× smaller by
+area — 5,872mm² vs. 45,500mm²), confirmed with the user as "no hard
+enclosure constraint, minimize it."
+
+Approach:
+1. Computed a floorplan from real component sizes (pad-level extents,
+   not bounding boxes inflated by reference-designator silkscreen text
+   — several components' `GetBoundingBox()` looked 2-4x their real
+   footprint size because of where reference text happened to be
+   placed; had to explicitly check pad-only extents to get an accurate
+   picture). The ESP32-S3-WROOM-1 module (23×27mm including silkscreen)
+   is the single largest constraint.
+2. Grouped components logically: front harness connectors (J2/J3) on
+   the top edge, rear (J4/J5) on the bottom edge, the TP4056/battery/
+   regulator power cluster (J1/BT1/LD1) on one side edge for
+   charging-port access (per user request — J1 is a separate physical
+   module connected by wires, not soldered flat to the main board, so
+   its pads didn't need to sit anywhere specific for mechanical
+   reasons, only for cable-management convenience), ESP32 centered,
+   haptic-driver cluster (TCA9548A + 4× DRV2605) directly below it,
+   audio (MAX98357A) below that.
+3. Verified placement had zero **pad-level** overlaps before routing —
+   checked this separately from bounding-box overlaps for the same
+   silkscreen-inflation reason as above, since a placement pass that
+   only avoided bounding-box overlaps would have been far more spread
+   out than necessary.
+4. Still hit real courtyard overlaps (5 of them, IC-decoupling caps
+   sandwiched too close to BT1/LD1's connector bodies) once
+   `kicad-cli pcb drc` was run — courtyards extend further than pads,
+   and in one direction were asymmetric relative to the footprint's own
+   placement anchor (not centered), which wasn't obvious from pad
+   position alone. Fixed by widening the board slightly (60mm → 65mm)
+   and shifting the power cluster over to open a real gap.
+5. Re-ran the same FreeRouting pipeline as the original layout (DSN
+   export → `freerouting.jar` → SES import) on the freshly-placed,
+   tightly-packed board. **This time it completed in one pass: 0
+   unrouted, 0 violations, FreeRouting's own score 999.99/1000** — no
+   manual gap-fixing needed at all, unlike the original (much larger,
+   more sprawling) layout attempt. Confirmed independently via
+   `kicad-cli pcb drc`: 0 violations, 0 unconnected pads.
+
+**Side benefit:** the tighter layout's traces came out at 0.15-0.2mm
+width throughout (FreeRouting's own choice, not manually forced) —
+comfortably within standard fab capability, and notably avoids the
+0.1mm minimum-width trace the original (larger) layout needed for one
+QFN escape, which was at the edge of what typical prototype fab
+services guarantee.
+
+**Not yet done, follow-up items:** a visual/silkscreen review (nothing
+has been visually inspected, only DRC-checked — reference designator
+placement, connector orientation for physical cable routing, and
+silkscreen legibility are all unverified), and the acoustic port holes
+for the 4 mic modules (see "Footprints" section above — still not
+added to any of the 4 module board outlines).
 
 ### Multi-Board Project Structure (2026-09-12)
 
