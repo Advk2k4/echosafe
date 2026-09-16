@@ -5921,7 +5921,7 @@
 			)
 		)
 	)
-	(global_label "3V3_SYS"
+	(global_label "TCA_RESET"
 		(shape bidirectional)
 		(at 249.76 166.27 0)
 		(fields_autoplaced yes)
@@ -8979,6 +8979,95 @@
 		(uuid "bdf46255-89b6-415a-909b-01e0b4ef36c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 20 16.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 300 165 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "4a8d30bd-f89b-426c-9091-19bef6f5164f")
+		(property "Reference" "R2"
+			(at 303.556 165 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "10k"
+			(at 300 165 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 296.889 165 90)
+			(effects (font (size 1.27 1.27) (italic yes)) (hide yes))
+		)
+		(property "Datasheet" "~"
+			(at 300 165 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(property "Description" "TCA9548A RESET pull-up (datasheet: 'Connect to VCC ... through a pull-up resistor, if not used'), 10k matching the same convention as R1's EN pull-up"
+			(at 300 165 0)
+			(effects (font (size 1.27 1.27)) (hide yes))
+		)
+		(pin "1"
+			(uuid "cde692d4-0514-4c90-90db-7b97e7aacd92")
+		)
+		(pin "2"
+			(uuid "9d963078-2da4-485f-8c02-8bb91d14dc2f")
+		)
+		(instances
+			(project "EchoSafe_RevA"
+				(path "/bdb2d0da-eb9b-4e92-86e3-ab6f2cfb466f"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(global_label "TCA_RESET"
+		(shape bidirectional)
+		(at 300 161.19 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a05f0829-f614-46f9-a4ef-7a97e045618c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 305 161.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "3V3_SYS"
+		(shape bidirectional)
+		(at 300 168.81 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "50d8ae04-12a1-462a-adb5-47b2c876c5a1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 305 168.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)

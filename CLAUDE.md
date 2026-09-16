@@ -488,10 +488,26 @@ these were assumptions, not verified facts, until confirmed:
   architecture was replaced with TP4056 + a single LD1117V33 — see
   "Power Architecture" above.
 - **TCA9548A address pins A0/A1/A2 → GND** (address 0x70, per firmware's
-  `TCA_ADDR`). **RESET → `3V3_SYS` directly** — datasheet recommends a
-  pull-up resistor rather than a direct tie; direct tie was used here as a
-  simplification since firmware never asserts a hardware reset on this
-  line. Add a resistor if you want to match the datasheet exactly.
+  `TCA_ADDR`). **RESET → `R2` (10kΩ) → `3V3_SYS`, fixed 2026-09-15.**
+  Previously a direct tie; TI's own TCA9548A datasheet (SCPS207H,
+  fetched and read this session, not recalled) pin description table
+  says RESET should "Connect to VCC or V_DPUM through a pull-up
+  resistor, if not used" — a direct tie works electrically but doesn't
+  match the documented reference practice, and a resistor is what lets
+  the line still be pulled low externally (a jumper, test point, or
+  future hardware-reset addition) without any risk of contention against
+  a hard tie. No specific resistance value is given in the datasheet for
+  this pin (unlike SDA/SCL, which have rise-time/capacitance equations —
+  RESET has no such bus-timing constraint, it's just a static DC level),
+  so 10kΩ was used, matching the same value and the same pattern already
+  used for `R1` (the ESP32 EN/CHIP_PU pull-up). Added as `R2` in
+  `EchoSafe_RevA.kicad_sch` using the identical placement pattern as R1
+  (global-label pins, no drawn wires — consistent with the rest of this
+  sheet). Verified via `kicad-cli sch erc`: 211 violations before → 210
+  after, same categories throughout (off-grid warnings and pin-to-pin
+  type-mismatch warnings on shared rails, both already expected/
+  documented above) — no new unconnected pins or dangling labels
+  introduced.
 - **DRV2605 IN/TRIG → GND** (firmware uses `DRV2605_MODE_INTTRIG` via I2C,
   so this pin's physical state doesn't matter functionally, but leaving a
   digital input floating is bad practice).
