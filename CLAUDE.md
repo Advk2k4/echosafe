@@ -841,25 +841,58 @@ full severity, not just the default error-level set):**
   coincident, so nothing was actually rendered twice) but flagged by
   `silk_overlap` as a literal self-overlap. Removed the duplicate copy on
   each, keeping one.
-- **Not fixed, flagged instead:** J1 (harness connector) and LS1 (speaker
-  connector) on the mic modules have a pin-1 orientation triangle on
-  F.Fab (assembly documentation) but **not on F.SilkS** — nothing marks
-  pin 1 on the physically-printed board. Left alone deliberately, since
-  fixing it would mean hand-editing KiCad's own shared global library
-  footprints (`Connector_JST`, `Connector_Molex`), not a project-local
-  file. Both connectors have keyed/friction-lock housings on the cable
-  side, so this doesn't risk a backwards *cable* mating, but it does mean
-  nothing on the silkscreen tells an assembler which way to orient the
-  receptacle itself when hand-soldering it onto the board. Worth adding a
-  small silkscreen pin-1 marker as a project-local footprint override
-  before hand-assembly, if it turns out to matter in practice.
-- **Not fixed, flagged instead:** U1 (ESP32-S3-WROOM-1)'s reference
-  designator sits inside the module's own footprint outline, meaning it
-  will be completely hidden once the RF module is soldered on top of it.
-  Cosmetic only (U1 is unambiguous — there's only one giant RF module
-  footprint on the board — and many real designs accept this same
-  tradeoff for a component this large/recognizable), left as-is rather
-  than guessing at a better position without a full layout re-check.
+**Both items originally left as "flagged, not fixed" above were revisited
+and addressed (2026-09-16 follow-up):**
+
+- **Pin-1 markers for J1/LS1.** Re-examined the stock footprints first,
+  since the original framing ("nothing marks pin 1 on the physically-
+  printed board") turned out to be an overstatement: `Connector_JST` and
+  `Connector_Molex`'s F.SilkS outlines already have a small asymmetric
+  notch cut into the corner nearest pin 1 (visible in the raw
+  `.kicad_mod` — the left/pin-1 side of the outline has an extra segment
+  the right side doesn't). It's real, but subtle enough at this scale
+  (a 0.12mm-wide notch) that it's easy to miss, especially compared to a
+  standard bold pin-1 dot/triangle convention. Rather than hand-edit
+  KiCad's shared global library files (which would affect every other
+  project on this machine and get silently reverted on a KiCad update),
+  created a small **project-local override library**,
+  `hardware/EchoSafe_RevA/lib/symbols/Connectors_PinMarked.pretty/`,
+  holding copies of the 3 affected footprints
+  (`JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal`,
+  `JST_SH_SM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal`,
+  `Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal`) each with one
+  added bold filled dot (`fp_circle`, 0.4mm diameter) on F.SilkS next to
+  pin 1, placed with margin from both the pad's own solder mask opening
+  and the outline/courtyard edges (verified via `kicad-cli pcb drc
+  --severity-all` after each addition — still 0 violations). Registered
+  in a new `fp-lib-table` entry (`Connectors_PinMarked`) in the central
+  pod and all 4 module projects, and resynced J2/J3/J4/J5 on the central
+  pod plus J1 (all 4 modules) and LS1 (front modules only) onto the new
+  footprints — same reload-and-reposition pattern used for every other
+  footprint fix in this review, nets/position/rotation preserved.
+- **U1's hidden reference.** Investigated whether it could actually be
+  moved outside the ESP32-S3-WROOM-1 module's own footprint outline
+  (18.45–41.55mm × 13.92–40.58mm) into genuinely open board area, by
+  checking every neighboring footprint's bounding box and every routed
+  trace's exact coordinates via pcbnew's Python API rather than
+  eyeballing a render. **Conclusion: no such space exists on this board.**
+  Every direction outside U1's outline is occupied within 1-7mm by
+  another component's silkscreen, body, or dense trace routing — this
+  board was deliberately packed to a minimum practical 65×90mm (see
+  "Central Pod Resize" above), and U1 (the single largest component) is
+  hemmed in on every side by design. Forcing the reference text outside
+  the outline would mean either overlapping a neighboring footprint's
+  silkscreen (trading one `silk_overlap` for another) or a real re-layout,
+  neither of which belongs in a silkscreen-only pass. What *was*
+  achievable and genuinely worth doing: the reference was sitting right
+  where a diagonal trace crosses the footprint interior, at the edge of a
+  small secondary pad cluster — moved it to `(31, 17)`, a fully
+  trace-free, pad-free 12mm×6mm-ish pocket in the same footprint's own
+  interior (still inside the outline, so still hidden after the module is
+  soldered on — same as before), which at least makes it unambiguous and
+  fully legible on the bare board before assembly. The "hidden after
+  assembly" tradeoff itself is unchanged and, per the original note,
+  common practice for a component this large and unambiguous.
 
 ### Multi-Board Project Structure (2026-09-12)
 

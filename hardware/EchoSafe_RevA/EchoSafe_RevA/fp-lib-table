@@ -3,4 +3,5 @@
   (lib (name "ESP32-S3-WROOM-1")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/KiCADv6/footprints.pretty")(options "")(descr ""))
   (lib (name "MAX98357AETE-T")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/ul_MAX98357AETE-T/KiCADv6/footprints.pretty")(options "")(descr ""))
   (lib (name "TP4056_Module")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/TP4056_Module.pretty")(options "")(descr ""))
+  (lib (name "Connectors_PinMarked")(type "KiCad")(uri "${KIPRJMOD}/../lib/symbols/Connectors_PinMarked.pretty")(options "")(descr "Local overrides of KiCad's stock Connector_JST/Connector_Molex footprints with a bold pin-1 dot added on F.SilkS -- see CLAUDE.md Visual/Silkscreen Review"))
 )
