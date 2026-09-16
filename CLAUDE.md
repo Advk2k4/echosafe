@@ -47,14 +47,17 @@ push here without asking first, every time.
   all 4 mics regardless of `ML_MIC_CHANNEL`, so if TL is genuinely dead,
   direction detection will still be degraded (that quadrant will rarely/
   never be selected correctly) until the hardware fault itself is fixed.
-- **Hardware:** `hardware/EchoSafe_RevA/` has a complete, detailed, fully
-  signal-wired KiCad *schematic* (ESP32-S3-WROOM-1, 4× ICS-43434 mics,
-  1× MAX98357A driving 2× 8Ω speakers in parallel, 4× DRV2605L haptics via
-  a TCA9548A mux, TP4056 charger + LD1117V33 regulator power chain) but
-  the **PCB layout was never started** — 0 footprints placed, 0 traces
-  routed, nothing fabricated. Any bring-up right now has to happen on a
-  breadboard or dev-kit with jumper wiring, following the schematic's part
-  choices and the pin mapping documented below.
+- **Hardware:** `hardware/` holds 5 KiCad projects (4 small earpiece
+  modules + 1 central pod), all with complete schematics **and now fully
+  placed, routed, DRC-clean PCB layouts** (0 violations, 0 unconnected
+  pads on every board, verified via `kicad-cli pcb drc`) — see "PCB
+  Layout" under the `hardware/` section below for how the central pod
+  (ESP32-S3-WROOM-1, MAX98357A, TCA9548A, 4× DRV2605L, TP4056 + LD1117V33
+  power chain) was routed. Nothing has been fabricated yet. Bring-up
+  right now still has to happen on a breadboard or dev-kit with jumper
+  wiring, following the schematic's part choices and the pin mapping
+  documented below — the PCB files are ready for fab but haven't been
+  ordered/assembled.
 
 ---
 
@@ -589,8 +592,50 @@ separate earbud cable.
    and fixed a session-wide Y-axis coordinate bug plus an unpowered
    ESP32 — see "Critical fix" section above. All 5 projects now verified
    at 0 dangling labels / 0 genuinely-unconnected pins.
-10. PCB layout itself (still 0 footprints placed, 0 traces routed, in
-    all 5 projects).
+10. ~~PCB layout itself~~ — done (2026-09-15). All 5 projects now have
+    footprints placed, fully routed, and verified at **0 DRC violations
+    / 0 unconnected pads** via `kicad-cli pcb drc`. See "PCB Layout"
+    below for how the central pod (by far the largest/densest board) was
+    routed.
+
+### PCB Layout (2026-09-15)
+
+All 5 boards are placed, routed, and DRC-clean:
+
+- **The 4 module boards** (`EchoSafe_FrontLeft/Right`,
+  `EchoSafe_RearLeft/Right`) — small (4-5 component) boards, routed
+  directly and verified clean early in this phase.
+- **The central pod** (`EchoSafe_RevA`) — ~22 components, ~150 net
+  connections, much denser. Hand-written/scripted routing (via pcbnew's
+  Python API) oscillated between 300-600 DRC violations without
+  converging, so this board was routed instead with **FreeRouting**
+  (open-source autorouter, v2.4.1): exported the board to Specctra
+  `.dsn`, ran FreeRouting headless (`java -jar freerouting.jar -de
+  reva.dsn -do reva_routed.ses -mp 30 -mt 1`), then imported the
+  resulting `.ses` back via `pcbnew.ImportSpecctraSES()`. This got the
+  board from 300-600 violations down to 3 violations + 3 unconnected
+  pads (4 nets FreeRouting couldn't complete) — the remaining gaps were
+  fixed by hand, one at a time, by querying the exact pad/track geometry
+  around each gap via pcbnew's Python API (never trusting remembered
+  coordinates — the board changes after every fix) and routing around
+  obstacles with explicit clearance math.
+  **Key lesson from the last, hardest gap (SPK_OUTN on U2, a MAX98357A
+  QFN16 at 0.5mm pin pitch):** don't double-count pad half-thickness —
+  the required clearance from a trace centerline to a pad is
+  `trace_half_width + netclass_clearance` measured from the pad's own
+  *edge*, not from its center with pad half-width added a second time.
+  Getting this wrong made an achievable route look impossible. The
+  actual blocker turned out to be a neighboring net's *via* (larger than
+  a pad, needs `via_radius + trace_half + clearance`), solved by
+  necking the trace down to 0.1mm width for just the ~1.5mm stretch
+  needed to clear it, then widening back to the normal 0.3mm afterward —
+  standard practice for tight QFN escapes, and something FreeRouting's
+  own successful traces in this exact area were already doing (0.15-
+  0.2mm, not 0.3mm) as a clue this session initially missed.
+  Java (`brew install openjdk`, keg-only at `/opt/homebrew/opt/openjdk/`)
+  and FreeRouting itself were installed to make this possible — see git
+  history for the full sequence of fix scripts if reconstructing this
+  process is ever needed again.
 
 ### Multi-Board Project Structure (2026-09-12)
 
