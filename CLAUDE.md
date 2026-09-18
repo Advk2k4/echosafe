@@ -961,12 +961,42 @@ All 5 boards reconfirmed at **0 DRC violations at full severity**
 (`kicad-cli pcb drc --severity-all`) after the fab-output generation and
 the schematic Footprint-field fix.
 
-**Not yet done:** these outputs have not been uploaded to or reviewed by
-an actual fab service (JLCPCB, OSH Park, etc.) — that's the natural next
-check (their gerber viewers often catch things kicad-cli's own DRC
-doesn't, like acid-trap corners or fab-specific minimum feature size). The
-TP4056/mic-footprint physical-verification caveats from "Footprints"
-above still stand and should happen before committing to an order.
+**Uploaded to JLCPCB's instant-quote tool and checked (2026-09-17).** Ran
+all 5 `outputs/<Project>-gerbers.zip` bundles through
+`cart.jlcpcb.com/quote` via Claude in Chrome (the built-in browser pane
+can't do file uploads — no `file_upload`-equivalent tool — so this
+specifically needed the user's real Chrome). Their pipeline parsed every
+board cleanly with no errors:
+
+| Board | JLCPCB-detected size | Expected (from layout) |
+|---|---|---|
+| EchoSafe_RevA | 90×65mm, 2-layer | 65×90mm |
+| EchoSafe_FrontLeft | 40×54mm, 2-layer | 54.1×40.1mm |
+| EchoSafe_FrontRight | 40×54mm, 2-layer | 54.1×40.1mm |
+| EchoSafe_RearLeft | 40×46mm, 2-layer | 46.1×40.1mm |
+| EchoSafe_RearRight | 40×46mm, 2-layer | 46.1×40.1mm |
+
+All 5 matched (JLCPCB rounds to whole mm). Each board's rendered
+top/bottom copper preview was also visually checked against the expected
+layout — reference designators, component footprints, and routing all
+matched what's in the actual `.kicad_pcb` files (e.g. the central pod's
+preview clearly shows J1's 4-pad TP4056 column, U1's ESP32 footprint, and
+J2-J5 in their expected positions). Each board's default PCB
+Specifications (thickness, copper weight, min trace/space) were accepted
+without any manufacturability warning, and each produced a real
+calculated price — the clearest signal their pipeline considers all 5
+fab-ready at standard 2-layer spec.
+
+**Deliberately not done: full DFM analysis / their dedicated Gerber
+Viewer** — both sit behind a JLCPCB account login, and creating an
+account or signing in on the user's behalf is out of bounds. What's
+above is everything obtainable without an account; a deeper DFM pass
+(if the user wants it) would need them to sign in themselves.
+
+The TP4056/mic-footprint physical-verification caveats from
+"Footprints" above still stand — the fab-readiness check above confirms
+the *files* are well-formed and manufacturable, not that the footprints
+match the real parts. See "Attempted physical verification" above.
 
 ### Multi-Board Project Structure (2026-09-12)
 
