@@ -229,7 +229,7 @@ void sendStoragePage(WiFiClient &client) {
 
 void loop() {
   // Check for incoming clients
-  WiFiClient client = server.available();
+  WiFiClient client = server.accept();
   
   if (client) {
     Serial.println("New client connected");
@@ -292,7 +292,7 @@ void loop() {
       WiFi.disconnect();
       WiFi.reconnect();
     } else {
-      Serial.printf("WiFi OK | RSSI: %d dBm | Heap: %d bytes\n", 
+      Serial.printf("WiFi OK | RSSI: %d dBm | Heap: %lu bytes\n",
                     WiFi.RSSI(), ESP.getFreeHeap());
     }
   }

@@ -143,10 +143,78 @@ every playback" bug the header comment worried about, but all real:
    of attempting playback.
 
 None of these 3 fixes have been tested on real hardware (none exists in
-this project's bring-up state yet — see "Current Status" above); they're
-verified by code-tracing and should be exercised via the `p` (speaker
-test) and `d`/`i` (direction/inference, which exercise the RX side)
-serial commands during actual bring-up.
+this project's bring-up state yet — see "Current Status" above); they
+were verified by code-tracing at the time, and since then by a real
+compile too — see "Build Verification (arduino-cli)" below. They should
+still be exercised via the `p` (speaker test) and `d`/`i` (direction/
+inference, which exercise the RX side) serial commands during actual
+bring-up — a clean compile confirms the code is well-formed, not that
+the logic is correct on real hardware.
+
+### Build Verification (arduino-cli, 2026-09-18)
+
+Nothing in `firmware/` had ever actually been compiled — every review up
+to this point (including the I2S fix above) was manual code-tracing
+only, since no Arduino toolchain existed on this machine. Installed one
+(`brew install arduino-cli`), added the ESP32 board package
+(`espressif/arduino-esp32` index), installed the `esp32:esp32` core
+(v3.3.12) and the Adafruit DRV2605 Library (already present), then
+compiled every real sketch in `firmware/` against the actual target
+hardware — **`esp32:esp32:esp32s3` with `FlashSize=16M,PSRAM=opi`**,
+matching the ESP32-S3-WROOM-1 **N16R8** module this project specs
+(16MB flash, octal/OPI 8MB PSRAM) — not just the board family default.
+
+**`echosafe_full_system.ino`** (the primary target, using its own
+`partitions.csv` via `PartitionScheme=custom` — confirmed this is how
+the ESP32 Arduino core actually picks up a sketch-local partitions file,
+not assumed) — **compiles clean.** 626,711 bytes (3%) flash, 99,340
+bytes (30%) RAM. One warning, not introduced by any fix here and not
+fixed: `driver/i2s.h`, the API this entire file is built on
+(`i2s_driver_install`/`i2s_read`/`i2s_write`/etc., used throughout, not
+a small piece to swap out), is now marked deprecated by Espressif in
+favor of `driver/i2s_std.h`/`i2s_pdm.h`/`i2s_tdm.h`. Still compiles and
+works today — this is a forward-looking maintenance note, not a bug:
+a future ESP32 core release could remove the legacy API outright, which
+would break the build. Worth a migration pass eventually, not urgent.
+
+**`echosafe_inference.ino`** — compiles clean (552,163 bytes / 3%
+flash, 63,556 bytes / 19% RAM), same single pre-existing i2s.h
+deprecation warning, same non-issue.
+
+**`echosafe_feature_collector.ino`** — compiles clean (307,499 bytes /
+23% flash, 59,076 bytes / 18% RAM) against `FlashSize=16M` with the
+*default* partition scheme (no custom `partitions.csv` in this sketch's
+folder, and it doesn't need one — no LittleFS/WAV usage, just serial
+streaming). Same i2s.h warning.
+
+**`uploadLittleFS.ino`** — not part of the original ask (it's a
+"development/debug utility only" tool per its own description above),
+checked anyway since the toolchain was already set up, and found 2 real,
+independent warnings, both fixed:
+- `server.available()` is deprecated in the current ESP32 core in favor
+  of `.accept()` (a rename, same behavior) — updated the call.
+- A `Serial.printf` format-string mismatch: `%d` used for
+  `ESP.getFreeHeap()`, which returns `uint32_t`. Fixed to `%lu` (not
+  `%u` — `uint32_t` is `long unsigned int` on this platform, confirmed
+  by the compiler still warning on the `%u` attempt before landing on
+  `%lu`, not guessed). Undefined behavior in principle, though harmless
+  in practice on a platform where both are 4 bytes — worth fixing
+  regardless since the compiler flags it for a reason.
+Also worth noting, not fixed: this sketch's file sits directly in
+`firmware/` rather than in its own `firmware/uploadLittleFS/` folder,
+so arduino-cli (and the Arduino IDE) can't compile it in place — it
+looks for `firmware/firmware.ino` and fails. Worked around by compiling
+a copy from a correctly-named temp folder; the fix for real would be
+moving the file into its own folder, which wasn't done here since it's
+a structural reorganization beyond what "compile and check" called for.
+
+**Net result: all 4 real sketches in `firmware/` compile cleanly** for
+the actual target hardware (ESP32-S3-WROOM-1 N16R8), with only the one
+pre-existing, non-urgent legacy-API deprecation warning shared across
+the 3 that use `driver/i2s.h`. This confirms the code is well-formed
+C++ that a real ESP-IDF toolchain accepts — it does not confirm the
+firmware actually works correctly on real hardware, which still hasn't
+happened (see "Current Status" at the top of this file).
 
 ### `firmware/echosafe_inference/echosafe_inference.ino` — MINIMAL BRING-UP REFERENCE
 Deliberately stripped down: single mic (I2S_NUM_0) + MLP inference + Serial
