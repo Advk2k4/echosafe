@@ -1203,6 +1203,41 @@ Confirm against the physical board once available; the footprint is a
 straightforward edit if it needs adjusting (same pattern as the mic
 footprint fix from 2026-09-13).
 
+**Attempted physical verification (2026-09-17): the user doesn't have the
+module in hand yet, so no real measurement was possible this round.**
+Also worth recording: a first attempt at getting dimensions came from
+asking Gemini directly, which returned a **6-pad, two-row layout**
+(adding `IN+`/`IN-`) that contradicted everything already established
+here — the schematic only has 4 nets on J1, and the existing 4-pad
+single-column layout came from 3 cited sources (the actual Amazon
+listing's own photos, a matching reference-design KiCad footprint on
+GitHub, and a datasheet PDF). The Gemini answer cited no source, was
+internally inconsistent between its own two tables, and turned out (per
+Gemini itself, asked directly) to be "generic parametric synthesis... not
+grounding itself in the specific hardware part number" — i.e. a
+hallucinated "typical breakout" answer, not data. **Not applied.** Real
+lesson: a second AI's unsourced answer isn't a substitute for verification
+against the actual part, and is worth explicitly distrusting when it
+contradicts something already cross-checked against primary sources.
+
+**Generated instead: a 1:1-scale printable fit-test template**
+(`hardware/EchoSafe_RevA/outputs/TP4056_fit_test_template.pdf`), built by
+placing a real instance of the `TP4056_Module` footprint (not a
+redrawn/guessed copy) on a blank A4 sheet alongside a 100mm calibration
+ruler and usage instructions, exported via `kicad-cli pcb export pdf`.
+The calibration ruler exists because printers/PDF viewers commonly
+rescale ("fit to page") silently — the instructions call out to measure
+it with a real ruler before trusting any pad alignment. Once the module
+arrives, hold the printout against it: if the 4 pad holes don't line up,
+measure the real offset and the footprint file
+(`hardware/EchoSafe_RevA/lib/symbols/TP4056_Module.pretty/TP4056_Module.kicad_mod`)
+is a small, isolated edit to correct — same pattern as every other
+footprint fix this project. One authoring gotcha hit while building this:
+`PCB_TEXT` defaults to center-justified, not left — a long instructional
+string anchored near the page's left margin will silently spill off the
+edge of the page unless `SetHorizJustify(GR_TEXT_H_ALIGN_LEFT)` is called
+explicitly.
+
 **PCB re-synced to match (2026-09-15):** J1's PCB footprint was swapped
 and its 4 nets (`VBAT`, `GND`, `VSYS`, `GND`) rerouted to the new pad
 positions — pad "2" (BAT-/GND) was kept at its exact old location since
