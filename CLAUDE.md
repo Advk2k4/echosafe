@@ -356,10 +356,12 @@ safe, it's the only one.
 
 ### Key commands
 ```bash
-pip install pyserial numpy tensorflow scikit-learn matplotlib sounddevice soundfile
+# Use the venv, not a bare pip install -- see "ml/.venv" note below for why
+cd ml && source .venv/bin/activate
+# (first time only: python3 -m venv .venv && pip install "numpy<2" tensorflow scikit-learn pyserial matplotlib sounddevice soundfile)
 
-# Retrain (reads echosafe_dataset.npz, writes firmware/echosafe_inference/model_weights.h)
-cd ml && python retrain.py
+# Retrain (reads echosafe_dataset.npz, writes ../firmware/echosafe_inference/model_weights.h)
+python retrain.py
 
 # Parametric training with more control
 python train_on_esp32_features.py \
@@ -379,6 +381,92 @@ python download_sounds.py --dataset esc50 --output sounds/
 Since `echosafe_full_system.ino` includes that same file via relative path,
 retraining updates both firmware targets automatically — you do not need to
 manually copy the header anywhere.
+
+**`ml/.venv`, not documented before, added 2026-09-18.** `pip install ...
+tensorflow` with no version pin, run today, installs the latest NumPy
+(2.x) alongside TensorFlow 2.16.2, a combination that's actually broken —
+TF 2.16.2's bundled code references `np.complex_`, an alias NumPy 2.0
+removed. `import tensorflow` fails outright with that combo (confirmed on
+this machine, not assumed). Rather than downgrade NumPy in the
+machine's global Python install — which could break other, unrelated
+projects depending on NumPy 2.x — created a venv in `ml/.venv` (already
+covered by the repo's `.gitignore`, so it won't get committed) with
+`numpy<2` pinned explicitly; pip then resolved `tensorflow==2.21.0`,
+which imports cleanly against it. Use this venv for any `ml/` work
+rather than the system Python.
+
+### `retrain.py` Code Review (2026-09-18)
+
+Reviewed and fixed 4 real issues, all verified by actually running the
+script against the real 1059-sample dataset (in an isolated copy of the
+repo's directory structure, not by touching the tracked
+`model_weights.h` files — training isn't deterministic-by-default enough
+to casually overwrite the checked-in model on every review pass; see the
+reproducibility fix below) and then compiling `echosafe_inference.ino`
+against the freshly-generated header to confirm real end-to-end
+compatibility, not just "the script didn't crash":
+
+1. **`OUTPUT_H_FILE` pointed at a directory that doesn't exist anywhere
+   in this repo.** It was `"echosafe_inference/model_weights.h"`, a
+   relative path — correct only if resolved from `ml/`, per the
+   documented `cd ml && python retrain.py` usage, but there is no
+   `ml/echosafe_inference/` anywhere in this project, only
+   `firmware/echosafe_inference/`. Confirmed directly (`Path(...).parent.exists()`
+   → `False`), not assumed. Practical effect: running `retrain.py`
+   exactly as documented would train for the full 150 epochs and then
+   **crash on the final line** trying to write to a nonexistent
+   directory — never actually updating the real firmware file, directly
+   contradicting this file's own "you do not need to manually copy the
+   header anywhere" claim above. Fixed: `OUTPUT_H_FILE =
+   "../firmware/echosafe_inference/model_weights.h"` — verified by
+   actually running the corrected script and confirming the file lands
+   in the right place.
+2. **No guard against retraining without a `noise` class** — the
+   "Important Constraints" section above documents this as a
+   hard-learned lesson ("omitting it causes every background sound to
+   be misclassified as a target"), but nothing in the script itself
+   enforced it; the lesson lived only in documentation, not in the
+   tool. Added `assert "noise" in label_map` right after `label_map` is
+   loaded, with an error message explaining why.
+3. **The exported header's own dataset-composition comment hardcoded a
+   stale, wrong class mapping** — `(barks:..., noise:..., bells:...,
+   sirens:..., horns:...)` used literal label-id numbers (1, 3, 4, 2, 0)
+   matching an old dataset layout that no longer exists (the real,
+   current `label_map` is `{horns:0, noise:1, bells:2, gunshots:3,
+   sirens:4}` — confirmed by loading the actual `.npz`, not assumed).
+   There's no class called "barks" in the current dataset at all. This
+   never affected the model's actual behavior (the real training/export
+   logic elsewhere in the script correctly used the dynamically-loaded
+   `id_to_name` map throughout) — only this one comment line reverted to
+   old hardcoded assumptions, but it's exactly the kind of thing someone
+   would trust while debugging a model issue. Fixed to build the same
+   string dynamically from `id_to_name`, like the rest of the script
+   already does. Verified: a fresh run now prints `Classes: horns,
+   noise, bells, gunshots, sirens` and `Dataset: 1059 samples
+   (horns:201, noise:258, bells:200, gunshots:200, sirens:200)` —
+   matching this file's own "Dataset" table above exactly.
+4. **Retraining wasn't actually reproducible despite looking like it was
+   trying to be.** The train/val/test split already used
+   `random_state=42`, but nothing seeded the model's own weight
+   initialization or dropout — two runs on identical data produced
+   different models (confirmed: ran it twice, diffed the exported
+   weights, they differed, and test accuracy varied 96.9% vs. 95.6%
+   between runs). First fix attempt (`np.random.seed(42)` +
+   `tf.random.set_seed(42)`) **did not actually fix it** — verified by
+   running twice again and finding the weights still differed. Root
+   cause: this project's Keras 3 keeps its own internal random
+   generators for layer init/dropout, separate from raw NumPy/TF global
+   state. Fixed properly with `keras.utils.set_random_seed(42)`, which
+   seeds Python's `random`, NumPy, TensorFlow, and Keras's generators
+   together — verified by running twice more and diffing the two
+   exported `model_weights.h` files (excluding the timestamp line):
+   byte-identical.
+
+None of this touched the real, tracked `firmware/echosafe_inference/model_weights.h`
+or `firmware/echosafe_full_system/model_weights.h` — all verification
+ran against an isolated copy. Actually retraining the shipped model is a
+deliberate action for the user to take when ready, not a side effect of
+a code review.
 
 ---
 

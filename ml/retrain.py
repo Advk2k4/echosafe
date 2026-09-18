@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 EchoSafe Retraining Script
-- Loads echosafe_dataset.npz (434 samples)
+- Loads echosafe_dataset.npz
 - Handles class imbalance via sklearn compute_class_weight
 - Trains MLP (403->128->64->5)
 - Exports model_weights.h in the exact format expected by echosafe_inference.ino
@@ -18,17 +18,42 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+# The train/val/test split below is already made reproducible via
+# random_state=42, but weight initialization and dropout weren't seeded, so
+# two runs on the exact same data still produced different models (verified:
+# np.random.seed()+tf.random.set_seed() alone were NOT enough to fix this --
+# Keras 3 keeps its own internal random generators for layer init/dropout,
+# separate from raw NumPy/TF state. keras.utils.set_random_seed() seeds
+# Python's random, NumPy, TensorFlow, and Keras's own generators together;
+# confirmed by running training twice and diffing the exported weights.
+keras.utils.set_random_seed(42)
+
 DATASET_PATH  = "echosafe_dataset.npz"
-OUTPUT_H_FILE = "echosafe_inference/model_weights.h"
+# Run from ml/ (per the documented `cd ml && python retrain.py`) -- the real
+# target is firmware/echosafe_inference/, a sibling of ml/, not a subfolder
+# of it. A previous version of this path ("echosafe_inference/model_weights.h")
+# pointed at a directory that doesn't exist anywhere in this repo, so the
+# script would train for the full 150 epochs and then crash on the final
+# write, never actually updating the firmware file it claims to update.
+OUTPUT_H_FILE = "../firmware/echosafe_inference/model_weights.h"
 
 # ── Load dataset ─────────────────────────────────────────────────────────────
 data = np.load(DATASET_PATH, allow_pickle=True)
-features  = data['features']   # (434, 31, 13)
-labels    = data['labels']     # (434,)
-label_map = data['label_map'].item()   # {'horns':0,'barks':1,'sirens':2,'noise':3,'bells':4}
+features  = data['features']   # (N, 31, 13)
+labels    = data['labels']     # (N,)
+label_map = data['label_map'].item()   # {class_name: class_id, ...} -- read from the dataset, not assumed
 
 num_classes = len(label_map)
 id_to_name  = {v: k for k, v in label_map.items()}
+
+# Hard-learned lesson (see CLAUDE.md "Important Constraints"): omitting the
+# noise/reject class causes every background sound to be misclassified as
+# a target class. Encode the check here instead of relying on remembering it.
+assert "noise" in label_map, (
+    f"'noise' class missing from label_map ({sorted(label_map)}) -- "
+    "training without it causes background sounds to be misclassified as "
+    "a target class. Add noise samples to the dataset before retraining."
+)
 
 print("=" * 60)
 print("  EchoSafe Retraining")
@@ -164,11 +189,15 @@ scaler_scale_str = "\n".join(
     for i in range(0, len(scaler.scale_), 10)
 )
 
+dataset_counts_str = ", ".join(
+    f"{id_to_name[i]}:{int(np.sum(labels == i))}" for i in range(num_classes)
+)
+
 h = f"""// EchoSafe Model Weights - Auto-generated
 // Generated: {datetime.now().strftime('%Y%m%d_%H%M%S')}
 // Test Accuracy: {test_acc*100:.1f}%
 // Classes: {', '.join(id_to_name[i] for i in range(num_classes))}
-// Dataset: {len(features)} samples  (barks:{int(np.sum(labels==1))}, noise:{int(np.sum(labels==3))}, bells:{int(np.sum(labels==4))}, sirens:{int(np.sum(labels==2))}, horns:{int(np.sum(labels==0))})
+// Dataset: {len(features)} samples  ({dataset_counts_str})
 // Class-weight balanced training
 
 #ifndef ECHOSAFE_MODEL_WEIGHTS_H
