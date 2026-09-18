@@ -395,6 +395,7 @@ static bool init_speaker(uint32_t sample_rate) {
   esp_err_t e = i2s_driver_install(SPK_PORT, &cfg, 0, NULL);
   if (e != ESP_OK) { Serial.printf("  [I2S] speaker install error %d\n", e); return false; }
   i2s_set_pin(SPK_PORT, &pins);
+  delay(50);  // settling time, matching init_dir_mic()/init_ml_mic()
   return true;
 }
 
@@ -452,7 +453,20 @@ void play_wav(const char* path) {
   }
   Serial.printf("  [WAV] %s  %lu Hz  %u ch  %u bit\n", path, sample_rate, channels, bits);
 
-  if (!init_speaker(sample_rate)) { f.close(); return; }
+  // Playback below assumes 16-bit stereo unconditionally (matches all 4
+  // WAV files currently in data/) -- a file that isn't would play back
+  // garbled with no error, since channels/bits are parsed but otherwise
+  // unused. Catch that here instead of failing silently.
+  if (channels != 2 || bits != 16) {
+    Serial.printf("  [WAV] unsupported format (%u ch, %u bit) -- only 16-bit stereo is supported\n",
+                  channels, bits);
+    f.close(); return;
+  }
+
+  // init_speaker() always uninstalls the existing I2S_NUM_1 driver before
+  // attempting to install the TX one, even on failure -- so on failure the
+  // port is left with no driver installed at all unless restored here.
+  if (!init_speaker(sample_rate)) { f.close(); restore_bot_mic(); return; }
 
   size_t written;
   while (f.available()) {
@@ -467,7 +481,10 @@ void play_wav(const char* path) {
 
 // Simple 440 Hz sine tone for speaker hardware test.
 void play_tone_440() {
-  if (!init_speaker(ML_SAMPLE_RATE)) return;
+  // Same reasoning as play_wav(): init_speaker() uninstalls the existing
+  // I2S_NUM_1 driver even when the subsequent install fails, so restore
+  // it here rather than leaving the port with no driver at all.
+  if (!init_speaker(ML_SAMPLE_RATE)) { restore_bot_mic(); return; }
   const int total = ML_SAMPLE_RATE * 2; // 2 seconds
   int done = 0;
   while (done < total) {

@@ -96,6 +96,58 @@ Requires the **Adafruit DRV2605 Library** (Arduino Library Manager) and the
 custom `partitions.csv` in this folder (default Arduino partition scheme is
 too small for the WAV alert files on LittleFS).
 
+**I2S_NUM_1 mode-switch code review (2026-09-17).** This port is time-
+multiplexed between BOT-mic RX (44.1kHz stereo, via `init_dir_mic()`) and
+speaker TX (via `init_speaker()`), restored afterward by
+`restore_bot_mic()`. Long flagged in this file's own header comment as a
+"plausible source of bugs" but never actually reviewed until now — no
+hardware needed, this was a pure code-tracing exercise (arduino-cli isn't
+installed on this machine, so verified by careful manual trace + brace/
+paren balance check, not an actual compile). Traced every call site
+(`capture_and_classify()`'s Phase 3, the `'d'`/`'p'`/`'t'` serial
+commands) end to end. **The core switching logic is correct** — every
+normal path through `play_wav()`/`play_tone_440()` does call
+`restore_bot_mic()` before returning, and the state machine is
+self-consistent from `setup()` onward. Found and fixed 3 real gaps
+along the way, none of them the "leaves it stuck in the wrong mode on
+every playback" bug the header comment worried about, but all real:
+
+1. **On `init_speaker()` failure, I2S_NUM_1 was left with no driver
+   installed at all**, in neither RX nor TX mode — `init_speaker()`
+   unconditionally calls `i2s_driver_uninstall(SPK_PORT)` *before*
+   attempting the install, so a failed install still tore down the
+   previous (working) RX config, and both `play_wav()` and
+   `play_tone_440()` returned early on that failure without calling
+   `restore_bot_mic()`. Self-healing (the next cycle's Phase 2 always
+   calls `init_dir_mic(MIC_BOT_PORT,...)` again regardless), so the
+   impact was at most one broken direction-detection cycle, only on the
+   rare path where an I2S driver install actually errors — but a real
+   "peripheral left in the wrong state" bug of exactly the kind
+   speculated about. Fixed: both functions now call `restore_bot_mic()`
+   on that failure path.
+2. **`init_speaker()` was missing the settling `delay(50)`** that both
+   `init_dir_mic()` and `init_ml_mic()` have after `i2s_set_pin()` — an
+   unexplained inconsistency between the three I2S init functions in
+   this file, not something the code or a comment justified. Whether it
+   caused an audible glitch on the first few samples of an alert can't
+   be confirmed without real hardware, but there was no reason for the
+   asymmetry. Fixed: added the same `delay(50)`.
+3. **`play_wav()` parses the WAV header's `channels`/`bits` fields but
+   never validates them** — playback unconditionally assumes 16-bit
+   stereo. Checked the real files in `firmware/data/`: all 4 currently
+   are 16-bit stereo, so this wasn't live, but it's a silent trap —
+   replace any alert WAV with a mono or different-bit-depth file (an
+   easy mistake re-exporting from an audio editor) and it would play
+   back garbled with no error at all. Fixed: `play_wav()` now rejects
+   anything that isn't 16-bit stereo with a clear Serial error instead
+   of attempting playback.
+
+None of these 3 fixes have been tested on real hardware (none exists in
+this project's bring-up state yet — see "Current Status" above); they're
+verified by code-tracing and should be exercised via the `p` (speaker
+test) and `d`/`i` (direction/inference, which exercise the RX side)
+serial commands during actual bring-up.
+
 ### `firmware/echosafe_inference/echosafe_inference.ino` — MINIMAL BRING-UP REFERENCE
 Deliberately stripped down: single mic (I2S_NUM_0) + MLP inference + Serial
 print only. **No speaker, no LittleFS, no WAV playback.** Auto-starts in
