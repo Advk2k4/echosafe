@@ -1156,6 +1156,51 @@ not a physical measurement. Worth a direct comparison against a real
 ICS-43434 part or a verified purchased footprint before fabricating the
 mic modules specifically.
 
+**Independently cross-validated against a community footprint (2026-09-17),
+short of physical measurement but a real step closer.** Prompted by the
+user asking whether a different mic part might come with an
+already-verified footprint (avoiding the physical-measurement problem
+entirely) — checked first whether the *same* ICS-43434 already used here
+has one, rather than assuming a swap was needed. It does: LCSC stocks
+this exact part (C5656610) with a community-verified EasyEDA
+footprint (`MIC-SMD_6P-L3.5-W2.7-P0.90-BL`), openable and inspectable
+without an account. Read every pad's exact coordinates directly from
+EasyEDA's property panel (not estimated from a rendered image) and
+compared them against this project's own derived values: after
+accounting for the EasyEDA footprint being authored at a 90°-rotated
+orientation (a coordinate-frame difference, not a design difference),
+**every pad position matched exactly** — the 1.8mm column-to-column
+pitch (WS/LR vs. SCK/VDD) and the 0.822mm row-to-row pitch (WS/VDD/SD
+vs. LR/SCK) both reproduced to the same precision as the values already
+in `ICS-43434_LGA6.kicad_mod`. Pad size matched to within rounding
+(0.52mm vs. this project's 0.522mm). This is real, independent
+corroboration of the datasheet-pixel-measurement approach from an
+unrelated source built by someone else — it doesn't replace an actual
+physical part in hand, but it substantially de-risks the pad-position
+question specifically.
+
+Two things this check did *not* resolve, so the physical-verification
+recommendation above still stands: the community footprint bakes its own
+acoustic hole directly into the mic footprint at **0.4mm diameter**,
+smaller than the 0.5mm this project uses (chosen to match the
+datasheet's own text, "0.5mm minimum recommended" — kept as the more
+conservative, more clearly-sourced value, but worth knowing the two
+footprints disagree here); and the GND ring's outer diameter (1.1mm in
+this project, reduced from the datasheet's 1.625mm for clearance — see
+above) wasn't re-confirmed against the community footprint's ring within
+the time spent on this pass.
+
+**Also checked, and deliberately not pursued: swapping to a different
+mic part.** The user separately asked whether an alternative part might
+be worth adopting if it came with a verified footprint. Given the above
+— the *current* part already has one, function-compatible variants
+(ICS-43432) exist in the same family if ever needed, and every design
+decision downstream of the mic (firmware I2S timing, the SEL-pin L/R
+channel-select wiring, the acoustic port placement) is already built and
+verified around ICS-43434 specifically — there's no finding here that
+argues for actually changing parts, only for trusting the existing
+footprint somewhat more.
+
 **Fixed a regression first:** splitting into 5 projects had wiped the
 mic (`LGA_CAV_IVS`) and motor (`C0720B001F:XDCR_C0720B001F`) footprints
 that already existed pre-split — my instance generator set every new
@@ -1267,6 +1312,69 @@ footprint fix this project. One authoring gotcha hit while building this:
 string anchored near the page's left margin will silently spill off the
 edge of the page unless `SetHorizJustify(GR_TEXT_H_ALIGN_LEFT)` is called
 explicitly.
+
+**Evaluated switching the charge IC itself (2026-09-17) — not adopted,
+open question for the user.** The user asked whether a different chip
+might sidestep the whole physical-verification problem: an IC with a
+manufacturer-standard package has a real datasheet mechanical drawing
+(or even a distributor-verified EasyEDA/KiCad footprint), unlike a
+breakout module from an unspecified clone manufacturer, where the *board
+outline itself* varies batch to batch — a genuinely different kind of
+uncertainty than what's been fought all session for the TP4056 module
+and the mic. Checked each candidate from a user-supplied list (originally
+from another AI, so treated with the same skepticism as the earlier
+Gemini dimension table) rather than taking it at face value:
+
+| Candidate | Verified real? | Fits this design? |
+|---|---|---|
+| **IP2312** | Yes — full datasheet fetched directly ([Injoinic, translated](https://make.net.za/wp-content/datasheets/INJOINIC%20IP2312%20Translated.pdf)), real ESOP8 package with complete mechanical dimensions, and LCSC (C605433) has it in stock with a verified EasyEDA footprint | Partially — see below |
+| TP5100 | Real chip | No — 2S/series charger; this design is single-cell (BT1 is one 3.7V cell) |
+| MCP73871 | Real chip | Wrong topology — power-path management is a different circuit class, not a drop-in |
+| IP5306 | Real chip | Wrong topology — it's a power-bank chip (boosts battery voltage *up* to 5V USB output); this design needs the opposite, battery voltage regulated *down* to 3.3V |
+| BQ25185 / BQ24075 | Real chips | Same power-path mismatch as MCP73871 |
+| CN3791 | Real chip | Irrelevant — solar MPPT input; no solar panel in this design |
+
+**Only IP2312 is a genuine candidate**, and it's a real one: single-cell
+Li-ion buck charger, 3A max, 94% efficient (vs. TP4056's linear
+dissipation), ESOP8 (a standard 1.27mm-pitch SOP-8-family package —
+easier to hand-solder than the MAX98357A QFN16 already in this design),
+and a verified, ready-to-use footprint already exists (no re-derivation
+needed, unlike the TP4056 module or mic footprint work above). **Not
+adopted, because it's a materially bigger change than a footprint
+swap:**
+- **No integrated battery protection.** The datasheet confirms IP2312 is
+  charge-management only — no OVP/OCP/short-circuit protection for the
+  cell. The HiLetGo TP4056 module currently spec'd bundles that
+  protection on the same board; switching to IP2312 means adding a
+  separate protection IC (e.g. DW01A+FS8205A) as new parts, new
+  schematic, new footprint.
+- **Requires a real application circuit, not a drop-in.** Per the
+  datasheet's typical schematic: a 1µH power inductor (a sourced part
+  with its own specs, not a passive to pick arbitrarily), 3 capacitors,
+  2 resistors (RICHG for charge current, RVSET for charge voltage), and
+  optionally an NTC network. This is a small charger-circuit design
+  task, not a footprint edit.
+- **Introduces a 750kHz switching regulator physically adjacent to the
+  audio path.** This design's own power-architecture notes already flag
+  switching noise (from the haptic motors) as a risk to watch for on the
+  audio rail; adding a second switching source directly in the charge
+  path is a new, real EMI/audio-noise variable that TP4056 (linear, no
+  switching) doesn't have.
+- **Harder to hand-assemble.** The whole point of every module/breakout
+  choice so far in this design (TP4056 module, LD1117V33 breakout, JST
+  connectors) has been hand-solderable simplicity for what reads as a
+  hobbyist/student build. IP2312 itself is easy (SOP-8, 1.27mm pitch),
+  but the surrounding inductor + charge-set resistor selection is a
+  small design exercise, not a plug-in.
+
+**Left as an open question rather than decided unilaterally** — this is
+a real architecture change (new BOM line, new protection circuit, new
+EMI consideration), not a footprint correction, and the original
+TP4056 + LD1117V33 choice was already a deliberate, considered decision
+earlier in this project. If IP2312's smaller size and higher efficiency
+are worth the added protection-circuit and inductor-selection work,
+that's a call only the user can make — nothing in `TP4056_Module.kicad_mod`
+or `EchoSafe_RevA.kicad_sch` has been changed.
 
 **PCB re-synced to match (2026-09-15):** J1's PCB footprint was swapped
 and its 4 nets (`VBAT`, `GND`, `VSYS`, `GND`) rerouted to the new pad
