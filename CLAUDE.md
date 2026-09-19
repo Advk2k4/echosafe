@@ -468,6 +468,134 @@ ran against an isolated copy. Actually retraining the shipped model is a
 deliberate action for the user to take when ready, not a side effect of
 a code review.
 
+### `train_on_esp32_features.py` Code Review (2026-09-18)
+
+This is the "parametric training with more control" path from the "Key
+commands" table above, run with `--export-c` to produce a firmware-ready
+header. Found the single most serious bug in the ML pipeline review so
+far, plus 3 more, all verified the same way as `retrain.py` — running
+the real script end to end against the real dataset, then compiling
+firmware against the result:
+
+1. **`--export-c` produced a header that shares zero identifiers with
+   what the firmware actually needs — it would never have compiled.**
+   The old `_generate_c_code()` emitted a generic `NUM_LAYERS` /
+   `layer_1_weights` / `layer_1_biases` format with an `MODEL_WEIGHTS_H`
+   include guard. Checked directly what
+   `firmware/echosafe_full_system/echosafe_full_system.ino` actually
+   references from this header (`grep` for every identifier, not
+   assumed): `NUM_CLASSES`, `INPUT_DIM`, `CLASS_NAMES`, `SCALER_MEAN`,
+   `SCALER_SCALE`, `LAYER0_INPUT/OUTPUT/WEIGHTS/BIAS`,
+   `LAYER2_INPUT/OUTPUT/WEIGHTS/BIAS`, `LAYER4_INPUT/OUTPUT/WEIGHTS/BIAS`
+   — none of which the old export produced. Every one of this project's
+   two firmware targets would have failed to compile with "undefined
+   identifier" errors if anyone actually used this documented
+   `--export-c` flag. Rewrote `export_for_esp32()`/`_generate_c_code()`
+   to emit exactly the format `retrain.py` does (same names, same
+   include guard, same `CLASS_NAMES`/`SCALER_MEAN`/`SCALER_SCALE`
+   derivation from `self.label_map`/`self.scaler`, same 3-layer
+   structure) — verified by running `--export-c` for real and compiling
+   `echosafe_inference.ino` against the output: clean compile, 3% flash.
+2. **Added a matching safety check the old code had no equivalent of:**
+   the firmware's `run_inference()` has exactly 3 hardcoded `dense()`
+   calls (LAYER0→LAYER2→LAYER4) — it is not generic over layer count.
+   `train_on_esp32_features.py` lets you pass `--hidden` with any number
+   of layer sizes, so a non-default architecture (e.g. `--hidden 128 64
+   32`, 3 hidden + 1 output = 4 Dense layers) would previously have
+   exported *something* with no warning that it doesn't match what the
+   firmware can actually run. `export_for_esp32()` now asserts exactly 3
+   Dense layers and raises a clear error naming the mismatch instead —
+   verified by actually running with `--hidden 128 64 32` and confirming
+   it fails loudly (`ValueError: Expected exactly 3 Dense layers... got
+   4`) rather than silently writing a bad header.
+3. **`plt.show()` after `plt.savefig()` hung the script indefinitely
+   in this environment, silently, right before the `--export-c` step —
+   confirmed twice, not theorized.** The plot save (`savefig`) always
+   completed and the resulting PNG existed on disk, but the process
+   then sat with static CPU usage indefinitely; killed it and found
+   `export_for_esp32()` had never run either time. Root cause: no
+   interactive display backend is available here, and `plt.show()`
+   blocks waiting for a window-server connection that never arrives.
+   This isn't specific to this sandbox — the same thing happens on any
+   headless box (SSH, CI, a container) with no `$DISPLAY`, which is a
+   completely plausible way to run a training script. Fixed: `show()`
+   is now only attempted when both (a) there's no `save_path` to fall
+   back on and (b) matplotlib's active backend is a real interactive
+   one (checked against an explicit allow-list, e.g. `TkAgg`/`MacOSX`/
+   `Qt5Agg`) — otherwise it prints where the plot was saved instead of
+   trying to show it. `main()` always passes `save_path`, so in the
+   documented CLI usage this never even reaches the backend check.
+4. **Same `noise`-class guard and reproducibility fix as `retrain.py`**
+   (`assert "noise" in self.label_map`, `keras.utils.set_random_seed(42)`
+   in place of nothing) — this script had neither, despite training the
+   same way on the same kind of data. Not independently re-verified for
+   byte-identical reproducibility the way `retrain.py` was (that check
+   was already done once on the same underlying mechanism); ported for
+   consistency between the two training paths.
+
+### `serial_logger.py` Code Review (2026-09-18)
+
+This is where `label_map` — the class-name-to-ID mapping every other ML
+script and the firmware itself (`WAV_FILES[]`, indexed positionally)
+trust without re-checking — actually gets decided, one typed label at a
+time (`get_label_id()` assigns the next integer to any name it hasn't
+seen before). No real serial hardware exists in this project's current
+state to test end to end, so the 2 fixes below were verified with a
+standalone harness instead (`/tmp/pcb_build/test_serial_logger.py` —
+imports the real module, exercises the new methods directly with
+synthetic inputs, no serial port needed) — 6/6 checks passed.
+
+1. **No protection against a captured sample with the wrong shape ever
+   existed.** `parse_features()` silently skips (`except ValueError:
+   pass`) any MFCC line from the ESP32 that doesn't parse as
+   comma-separated floats — a plausible outcome of a dropped/corrupted
+   line over a plain, checksum-free serial protocol at 115200 baud. The
+   only check before accepting a sample was "is the list non-empty," not
+   "does it have the right shape." A capture that lost 2 of its 31
+   expected frame-rows in transit would be saved into the dataset as-is,
+   silently — the resulting ragged/wrong-shaped sample would only
+   surface much later as a confusing `reshape()` error in `retrain.py`
+   or `train_on_esp32_features.py`, far from where the actual bad
+   capture happened. Added `validate_capture_shape()`, checked against
+   `EXPECTED_NUM_FRAMES=31`/`EXPECTED_NUM_MFCC=13` (matching both this
+   file's own "ML Pipeline" section above and
+   `firmware/echosafe_feature_collector`'s own `NUM_FRAMES`/`NUM_MFCC`
+   `#define`s, confirmed by grepping the firmware, not assumed) — wired
+   into both `collect_sample()` and `batch_collect()`, rejecting a
+   malformed capture with a clear message instead of saving it.
+2. **No protection against a typo'd or differently-capitalized label
+   silently creating a "ghost" class either**, despite this file's own
+   top-level "Important Constraints" already documenting "label names
+   must stay consistent (snake_case) across all collection sessions" as
+   a hard-learned lesson — same pattern as the missing `noise`-class
+   guard found in `retrain.py`: the lesson lived only in docs, not in
+   any of the tools. Typing `"Bells"` in a session that already has
+   `"bells"` would previously just create a 6th class with 1 sample,
+   with nothing surfacing the mistake until the model's behavior looked
+   wrong. Added `check_label_typo()` — case/`_`/space-insensitive
+   near-miss detection against the existing `label_map`, prompting for
+   confirmation before actually creating what might be an accidental
+   duplicate class — wired into both `get_label_from_user()` (single-
+   capture mode) and `batch_collect()`'s label prompt.
+
+**Cross-cutting risk this surfaces, not fixed here (out of scope for a
+script-level review):** because `get_label_id()` assigns IDs by order of
+first appearance, the specific mapping `{horns:0, noise:1, bells:2,
+gunshots:3, sirens:4}` this project currently relies on everywhere
+(firmware's `WAV_FILES[]`, both training scripts' `CLASS_NAMES` export)
+is an accident of collection-session history, not something enforced
+anywhere. It happens to be correct for the current
+`ml/echosafe_dataset.npz` (checked directly: `label_map` really is
+`{horns:0, noise:1, bells:2, gunshots:3, sirens:4}`), but nothing stops
+a future from-scratch collection session (a fresh `--output` path, or
+this file's own `label_map` reconstruction logic run against a
+different starting order) from producing a differently-ordered map that
+trains and exports "successfully" while silently mismatching the
+firmware's fixed positional assumptions about which class ID is which
+sound. Worth a fixed canonical `label_map` (hardcoded once, validated
+against on load) if this dataset ever gets rebuilt from scratch rather
+than incrementally extended.
+
 ---
 
 ## Hardware (`hardware/`)

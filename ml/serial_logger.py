@@ -19,6 +19,18 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
+# Must match the training pipeline's expected feature shape (CLAUDE.md "ML
+# Pipeline" -- Frames per sample: 31, MFCC coefficients: 13) and the
+# firmware's own NUM_FRAMES/NUM_MFCC (firmware/echosafe_feature_collector).
+# Nothing validated a captured sample's actual shape against this before it
+# was accepted, so a serial glitch that dropped a frame or two mid-capture
+# (parse_features() silently skips any MFCC line that fails to parse as
+# floats) would save a ragged sample straight into the dataset -- which
+# would only surface much later, as a confusing shape/reshape error in
+# retrain.py, far from where the actual bad data was captured.
+EXPECTED_NUM_FRAMES = 31
+EXPECTED_NUM_MFCC   = 13
+
 class FeatureLogger:
     def __init__(self, port, baudrate=115200, output_file='echosafe_dataset.npz'):
         self.port = port
@@ -95,6 +107,50 @@ class FeatureLogger:
             self.label_map[label_name] = self.next_label_id
             self.next_label_id += 1
         return self.label_map[label_name]
+
+    def check_label_typo(self, label_name):
+        """Warn if label_name looks like a near-miss of an existing class.
+
+        get_label_id() creates a brand new class for any name it hasn't
+        seen before, silently -- CLAUDE.md already documents "label names
+        must stay consistent (snake_case) across all collection sessions"
+        as a hard-learned lesson, but nothing enforced it. A single typo'd
+        or differently-capitalized label (e.g. "Bells" collected alongside
+        an existing "bells") creates a 6th class the rest of the pipeline
+        has no idea is really the same sound, corrupting the dataset in a
+        way that's easy to miss until the model behaves strangely. Returns
+        True if the label should be used as typed, False if the user
+        wants to cancel and retype it.
+        """
+        if label_name in self.label_map:
+            return True  # exact match to an existing class -- fine
+        near_miss = next(
+            (existing for existing in self.label_map
+             if existing.lower() == label_name.lower()
+             or existing.replace('_', '').replace(' ', '') ==
+                label_name.replace('_', '').replace(' ', '')),
+            None,
+        )
+        if near_miss is None:
+            return True  # genuinely a new class name, not a near-miss
+        answer = input(
+            f"   ⚠ '{label_name}' looks like it might be a typo of the "
+            f"existing class '{near_miss}' rather than a new class. "
+            f"Use '{label_name}' as a new class anyway? [y/N]: "
+        ).strip().lower()
+        return answer == 'y'
+
+    def validate_capture_shape(self, mfcc_array):
+        """Reject a capture whose shape doesn't match what training expects,
+        instead of silently saving a ragged sample (see EXPECTED_NUM_FRAMES/
+        EXPECTED_NUM_MFCC above for why)."""
+        expected = (EXPECTED_NUM_FRAMES, EXPECTED_NUM_MFCC)
+        if mfcc_array.shape != expected:
+            print(f"   ✗ Malformed capture: got shape {mfcc_array.shape}, "
+                  f"expected {expected} -- likely a dropped frame over serial. "
+                  f"Discarding this sample, not saving it.")
+            return False
+        return True
     
     def connect(self):
         """Connect to ESP32"""
@@ -204,14 +260,17 @@ class FeatureLogger:
             for i, (name, id_) in enumerate(sorted(self.label_map.items(), key=lambda x: x[1]), 1):
                 print(f"      {i}. {name} ({sum(1 for l in self.labels if l == id_)} samples)")
         
-        print("\n   Enter class name (or press Enter to skip this sample):")
-        label = input("   > ").strip()
-        
-        if not label:
-            print("   ⏭  Skipping sample...")
-            return None
-        
-        return label
+        while True:
+            print("\n   Enter class name (or press Enter to skip this sample):")
+            label = input("   > ").strip()
+
+            if not label:
+                print("   ⏭  Skipping sample...")
+                return None
+
+            if self.check_label_typo(label):
+                return label
+            # else: user said the near-miss guard was right, loop and re-prompt
     
     def collect_sample(self):
         """Trigger ESP32 to capture and collect one sample"""
@@ -231,12 +290,15 @@ class FeatureLogger:
         
         # Convert to numpy array
         mfcc_array = np.array(feature_data['mfcc'], dtype=np.float32)
-        
+
         print(f"\n✓ Captured features: shape {mfcc_array.shape}")
         print(f"   Frames: {feature_data['num_frames']}")
         print(f"   MFCCs: {feature_data['num_mfcc']}")
         print(f"   Capture time: {feature_data['capture_time_ms']} ms")
-        
+
+        if not self.validate_capture_shape(mfcc_array):
+            return False
+
         # Get label from user
         label_name = self.get_label_from_user()
         
@@ -282,6 +344,9 @@ class FeatureLogger:
         if not label_name:
             print("   No label entered — cancelling.")
             return
+        if not self.check_label_typo(label_name):
+            print("   Cancelling — re-run and enter the intended class name.")
+            return
 
         label_id = self.get_label_id(label_name)
         print(f"\n   Label set to '{label_name}' (ID: {label_id})")
@@ -300,6 +365,9 @@ class FeatureLogger:
                     continue
 
                 mfcc_array = np.array(feature_data['mfcc'], dtype=np.float32)
+
+                if not self.validate_capture_shape(mfcc_array):
+                    continue
 
                 self.features.append(mfcc_array)
                 self.labels.append(label_id)

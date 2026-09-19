@@ -25,6 +25,12 @@ except ImportError:
     print("Install with: pip install tensorflow")
     exit(1)
 
+# Matches the fix in retrain.py: np.random.seed()/tf.random.set_seed() alone
+# don't seed Keras 3's own internal generators for layer init/dropout, so
+# two runs on identical data would still produce different models despite
+# the data split below already being seeded via random_state=42.
+keras.utils.set_random_seed(42)
+
 class ESP32ModelTrainer:
     def __init__(self, dataset_path, output_dir='trained_models'):
         self.dataset_path = Path(dataset_path)
@@ -45,6 +51,7 @@ class ESP32ModelTrainer:
         # Model
         self.model = None
         self.history = None
+        self.test_acc = None
     
     def load_dataset(self):
         """Load collected ESP32 features"""
@@ -57,7 +64,16 @@ class ESP32ModelTrainer:
         self.label_map = data['label_map'].item()
         
         self.num_classes = len(self.label_map)
-        
+
+        # Hard-learned lesson (see CLAUDE.md "Important Constraints"): omitting
+        # the noise/reject class causes every background sound to be
+        # misclassified as a target class. Same guard as retrain.py.
+        assert "noise" in self.label_map, (
+            f"'noise' class missing from label_map ({sorted(self.label_map)}) -- "
+            "training without it causes background sounds to be misclassified "
+            "as a target class. Add noise samples to the dataset before training."
+        )
+
         print(f"   ✓ Loaded {len(features)} samples")
         print(f"   Classes: {self.num_classes}")
         print(f"   Feature shape: {features[0].shape}")
@@ -185,7 +201,8 @@ class ESP32ModelTrainer:
         print(f"\n📊 Evaluating on test set...")
         
         test_loss, test_acc = self.model.evaluate(self.X_test, self.y_test, verbose=0)
-        
+        self.test_acc = test_acc  # stashed for export_for_esp32()'s header comment
+
         print(f"   Test Loss: {test_loss:.4f}")
         print(f"   Test Accuracy: {test_acc*100:.2f}%")
         
@@ -278,74 +295,143 @@ class ESP32ModelTrainer:
         if save_path:
             plt.savefig(save_path, dpi=150, bbox_inches='tight')
             print(f"   ✓ Training plot: {save_path}")
-        
-        plt.show()
+
+        # plt.show() here used to run unconditionally after savefig. On a
+        # machine with no interactive display backend available (headless/
+        # SSH/CI, or -- confirmed directly -- this environment), it blocks
+        # forever waiting for a window server connection that never comes,
+        # silently hanging the whole script right before the --export-c
+        # step that matters most (confirmed twice: killed two stuck runs,
+        # both had produced this PNG via savefig() but never reached
+        # export_for_esp32()). The plot is already saved to save_path above
+        # in every real invocation (main() always passes one); only try an
+        # interactive window when there's no save_path to fall back on, and
+        # even then behind a backend check so a non-interactive backend
+        # (e.g. Agg) can't hang the script the same way.
+        if not save_path:
+            interactive_backends = {
+                "qtagg", "qt5agg", "gtk3agg", "gtk4agg", "tkagg",
+                "wxagg", "macosx", "nbagg", "webagg",
+            }
+            if plt.get_backend().lower() in interactive_backends:
+                plt.show()
+            else:
+                print("   (no interactive display backend available -- "
+                      "pass save_path to save the plot instead of showing it)")
+        plt.close(fig)
     
     def export_for_esp32(self, model_path, output_c_file):
-        """Convert model to C arrays for ESP32"""
+        """Convert model to C arrays for ESP32.
+
+        Output format must match exactly what echosafe_full_system.ino /
+        echosafe_inference.ino #include and reference by name (NUM_CLASSES,
+        INPUT_DIM, CLASS_NAMES, SCALER_MEAN/SCALE, LAYER0/2/4_*) -- this
+        used to emit a generic NUM_LAYERS/layer_N_weights format that shared
+        none of those identifiers with what the firmware actually expects,
+        so a file produced by this function would fail to compile if used
+        as model_weights.h. Fixed to match retrain.py's format, which is
+        the format the firmware is actually written against.
+        """
         print(f"\n🔧 Exporting model for ESP32...")
-        
+
         # Load model
         model = keras.models.load_model(model_path)
-        
+
         # Extract weights
-        weights_biases = []
-        for layer in model.layers:
-            if isinstance(layer, layers.Dense):
-                weights, biases = layer.get_weights()
-                weights_biases.append((weights, biases))
-        
-        # Generate C code
-        c_code = self._generate_c_code(weights_biases)
-        
-        # Save
+        dense_layers = [l for l in model.layers if isinstance(l, layers.Dense)]
+
+        # The firmware's inference code is not generic over layer count --
+        # run_inference() in echosafe_full_system.ino has exactly 3 hardcoded
+        # dense() calls (LAYER0->LAYER2->LAYER4). A model built with anything
+        # other than the default --hidden 128 64 (2 hidden + 1 output = 3
+        # Dense layers) would silently produce a header the firmware can't
+        # actually use correctly. Fail loudly instead.
+        if len(dense_layers) != 3:
+            raise ValueError(
+                f"Expected exactly 3 Dense layers (2 hidden + output) to match "
+                f"the firmware's hardcoded LAYER0/LAYER2/LAYER4 inference code, "
+                f"got {len(dense_layers)}. Re-run with --hidden set to exactly "
+                f"2 values, or update run_inference() in "
+                f"echosafe_full_system.ino to match this architecture."
+            )
+
+        W0, b0 = dense_layers[0].get_weights()
+        W2, b2 = dense_layers[1].get_weights()
+        W4, b4 = dense_layers[2].get_weights()
+
+        c_code = self._generate_c_code(W0, b0, W2, b2, W4, b4)
+
         output_path = Path(output_c_file)
         with open(output_path, 'w') as f:
             f.write(c_code)
-        
+
         print(f"   ✓ C code: {output_path}")
         print(f"   Include this file in your ESP32 project")
-    
-    def _generate_c_code(self, weights_biases):
-        """Generate C code for model weights"""
-        code = "// Auto-generated model weights for ESP32\n"
-        code += "// Generated: " + datetime.now().isoformat() + "\n\n"
-        
-        code += "#ifndef MODEL_WEIGHTS_H\n"
-        code += "#define MODEL_WEIGHTS_H\n\n"
-        
-        # Number of layers
-        code += f"#define NUM_LAYERS {len(weights_biases)}\n\n"
-        
-        # Layer sizes
-        layer_sizes = []
-        for weights, biases in weights_biases:
-            layer_sizes.append(weights.shape[1])
-        
-        code += f"const int layer_sizes[NUM_LAYERS] = {{{', '.join(map(str, layer_sizes))}}};\n\n"
-        
-        # Weights and biases for each layer
-        for i, (weights, biases) in enumerate(weights_biases):
-            # Weights
-            code += f"// Layer {i+1} weights ({weights.shape[0]} x {weights.shape[1]})\n"
-            code += f"const float layer_{i+1}_weights[{weights.size}] = {{\n"
-            
-            flat_weights = weights.flatten()
-            for j in range(0, len(flat_weights), 8):
-                row = flat_weights[j:j+8]
-                code += "    " + ", ".join(f"{w:.6f}f" for w in row) + ",\n"
-            
-            code += "};\n\n"
-            
-            # Biases
-            code += f"// Layer {i+1} biases ({biases.shape[0]})\n"
-            code += f"const float layer_{i+1}_biases[{biases.size}] = {{\n"
-            code += "    " + ", ".join(f"{b:.6f}f" for b in biases) + "\n"
-            code += "};\n\n"
-        
-        code += "#endif // MODEL_WEIGHTS_H\n"
-        
-        return code
+
+    def _generate_c_code(self, W0, b0, W2, b2, W4, b4):
+        """Generate model_weights.h content -- same format as retrain.py."""
+        id_to_name = {v: k for k, v in self.label_map.items()}
+        class_names_str = ", ".join(f'"{id_to_name[i]}"' for i in range(self.num_classes))
+
+        def fmt_array(name, arr, per_line=10):
+            flat = arr.flatten()
+            lines = [f"const float {name}[] = {{"]
+            for i in range(0, len(flat), per_line):
+                chunk = flat[i:i + per_line]
+                lines.append("  " + ", ".join(f"{v:.8f}f" for v in chunk) + ",")
+            lines.append("};\n")
+            return "\n".join(lines)
+
+        scaler_mean_str = "\n".join(
+            "  " + ", ".join(f"{v:.8f}f" for v in self.scaler.mean_[i:i + 10]) + ","
+            for i in range(0, len(self.scaler.mean_), 10)
+        )
+        scaler_scale_str = "\n".join(
+            "  " + ", ".join(f"{v:.8f}f" for v in self.scaler.scale_[i:i + 10]) + ","
+            for i in range(0, len(self.scaler.scale_), 10)
+        )
+        acc_str = f"{self.test_acc * 100:.1f}%" if self.test_acc is not None else "unknown"
+        input_dim = W0.shape[0]
+
+        return f"""// EchoSafe Model Weights - Auto-generated (train_on_esp32_features.py)
+// Generated: {datetime.now().strftime('%Y%m%d_%H%M%S')}
+// Test Accuracy: {acc_str}
+// Classes: {', '.join(id_to_name[i] for i in range(self.num_classes))}
+
+#ifndef ECHOSAFE_MODEL_WEIGHTS_H
+#define ECHOSAFE_MODEL_WEIGHTS_H
+
+#define NUM_CLASSES {self.num_classes}
+#define INPUT_DIM   {input_dim}
+
+const char* CLASS_NAMES[] = {{{class_names_str}}};
+
+const int SCALER_SIZE = {input_dim};
+const float SCALER_MEAN[] = {{
+{scaler_mean_str}
+}};
+
+const float SCALER_SCALE[] = {{
+{scaler_scale_str}
+}};
+
+// ── Layer 0: Dense {W0.shape[0]} → {W0.shape[1]} ────────────────────────────
+const int LAYER0_INPUT  = {W0.shape[0]};
+const int LAYER0_OUTPUT = {W0.shape[1]};
+{fmt_array('LAYER0_WEIGHTS', W0)}
+{fmt_array('LAYER0_BIAS',    b0)}
+// ── Layer 2: Dense {W2.shape[0]} → {W2.shape[1]} ────────────────────────────
+const int LAYER2_INPUT  = {W2.shape[0]};
+const int LAYER2_OUTPUT = {W2.shape[1]};
+{fmt_array('LAYER2_WEIGHTS', W2)}
+{fmt_array('LAYER2_BIAS',    b2)}
+// ── Layer 4: Dense {W4.shape[0]} → {W4.shape[1]} ──────────────────────────────
+const int LAYER4_INPUT  = {W4.shape[0]};
+const int LAYER4_OUTPUT = {W4.shape[1]};
+{fmt_array('LAYER4_WEIGHTS', W4)}
+{fmt_array('LAYER4_BIAS',    b4)}
+#endif // ECHOSAFE_MODEL_WEIGHTS_H
+"""
 
 def main():
     parser = argparse.ArgumentParser(description='Train EchoSafe model on ESP32 features')
