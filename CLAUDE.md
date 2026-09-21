@@ -1645,6 +1645,47 @@ this project, reduced from the datasheet's 1.625mm for clearance — see
 above) wasn't re-confirmed against the community footprint's ring within
 the time spent on this pass.
 
+**Generated a fit-test template (2026-09-21), same pattern as the
+TP4056 one below.** `hardware/EchoSafe_RevA/outputs/ICS43434_fit_test_template.pdf`
+— built via the `pcbnew` Python API, same tool used for every other
+footprint fix in this project. Places real instances of both
+`ICS-43434_LGA6` (MIC1) and `Acoustic_Port_0.5mm` (H1) at the same
+relative offset they actually sit at on a real board — confirmed by
+reading `hardware/EchoSafe_FrontLeft/EchoSafe_FrontLeft.kicad_pcb`
+directly rather than assuming: both footprints are placed at identical
+coordinates (32, 8mm) with no rotation. Pin-name callouts (WS/LR/GND/
+SCK/VDD/SD) are positioned from the loaded footprint's own real pad
+data (`pad.GetPosition()`) and the pad-number→signal mapping read from
+the schematic symbol (`Mics.kicad_sym`'s pin table) — not retyped from
+this file's own numbers above, to avoid repeating the kind of
+by-hand-transcription mistake already caught once for this exact
+footprint (see "Pad positions were actually wrong" above).
+
+Same 100mm-calibration-ruler pattern as the TP4056 template, but with
+an explicit caveat the TP4056 one didn't need: at this part's scale
+(~3.5×2.65mm), ordinary print/scan tolerance can exceed what a visual
+alignment check can actually verify, so the instructions point at
+calipers against the real part as the real check, print alignment as
+only a coarse sanity check. Also notes that since the export is a
+vector PDF, on-screen inspection can zoom in losslessly to any
+magnification — no separate enlarged-but-not-to-scale copy is needed
+the way it might be for a paper printout.
+
+One tooling gap hit and worked around: this KiCad install's `pcbnew`
+Python binding doesn't expose `PAGE_INFO` as a typed class
+(`board.GetPageSettings()` returns an opaque `SwigPyObject` — calling
+`.SetPaperId()` on it fails), so the A4 paper size was forced with a
+targeted text-level regex fixup on the saved `.kicad_pcb` file instead
+(replacing the `(paper "...")` line) — the same "hand-edit generated
+file text when the Python API falls short" pattern already used
+elsewhere in this project. Verified this doesn't just silently produce
+a mis-scaled PDF: `pdfinfo` on the exported file confirms real A4 page
+dimensions (841.9×595.3pt, landscape — same orientation the existing
+TP4056 template already exports at, so this is consistent, not a new
+inconsistency), and the physical layout was checked by actually
+rendering the PDF to a raster image and reading it back, not just
+trusting the generator script.
+
 **Also checked, and deliberately not pursued: swapping to a different
 mic part.** The user separately asked whether an alternative part might
 be worth adopting if it came with a verified footprint. Given the above
