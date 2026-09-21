@@ -1,0 +1,282 @@
+<title>EchoSafe Parts List</title>
+<style>
+:root{
+  --bg:#f5f3ef; --surface:#ffffff; --ink:#1b1f1d; --ink-muted:#666f6b;
+  --accent:#c1501f; --accent-ink:#ffffff; --line:#e0ddd6;
+  --ok:#2f7a54; --ok-bg:#e7f2ec; --warn:#a8721a; --warn-bg:#faf1de; --warn-line:#e3c98a;
+  --chip-bg:#efece5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161a; --surface:#1a2024; --ink:#eae7e0; --ink-muted:#9aa3a0;
+    --accent:#ff7d43; --accent-ink:#1b1200; --line:#293036;
+    --ok:#57b98a; --ok-bg:#173226; --warn:#e3a94c; --warn-bg:#2c2411; --warn-line:#4a3a16;
+    --chip-bg:#232a2f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161a; --surface:#1a2024; --ink:#eae7e0; --ink-muted:#9aa3a0;
+  --accent:#ff7d43; --accent-ink:#1b1200; --line:#293036;
+  --ok:#57b98a; --ok-bg:#173226; --warn:#e3a94c; --warn-bg:#2c2411; --warn-line:#4a3a16;
+  --chip-bg:#232a2f;
+}
+*{box-sizing:border-box;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  padding:0 16px; padding-block:20px 60px;
+  max-width:760px; margin:0 auto;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+h1{font-size:1.5rem; margin:0 0 2px; letter-spacing:-0.01em;}
+.subtitle{color:var(--ink-muted); font-size:.9rem; margin:0 0 18px; max-width:60ch;}
+
+.progress-bar{
+  position:sticky; top:env(safe-area-inset-top,0px);
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:12px 14px; margin-bottom:22px; z-index:5;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.progress-row{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.progress-count{font-family:"IBM Plex Mono",monospace; font-size:1.1rem; font-variant-numeric:tabular-nums;}
+.progress-count b{color:var(--accent);}
+.progress-label{color:var(--ink-muted); font-size:.78rem;}
+.progress-track{height:6px; border-radius:4px; background:var(--chip-bg); margin-top:9px; overflow:hidden;}
+.progress-fill{height:100%; background:var(--accent); width:0%; transition:width .25s ease;}
+.reset-btn{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--ink-muted);
+  background:transparent; border:1px solid var(--line); border-radius:7px;
+  padding:4px 8px; cursor:pointer;
+}
+.reset-btn:hover{color:var(--ink); border-color:var(--ink-muted);}
+
+details{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  margin-bottom:12px; overflow:hidden;
+}
+summary{
+  list-style:none; cursor:pointer; padding:13px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  font-weight:600; font-size:.95rem;
+}
+summary::-webkit-details-marker{display:none;}
+summary::before{content:"›"; display:inline-block; transform:rotate(0deg); transition:transform .15s ease; margin-right:9px; color:var(--ink-muted); font-size:1.1rem;}
+details[open] summary::before{transform:rotate(90deg);}
+summary .cat-name{display:flex; align-items:baseline; gap:9px; flex:1;}
+summary .cat-count{
+  font-family:"IBM Plex Mono",monospace; font-size:.74rem; color:var(--ink-muted);
+  background:var(--chip-bg); border-radius:999px; padding:2px 9px; font-weight:400;
+}
+
+.rows{border-top:1px solid var(--line);}
+.row{
+  display:grid; grid-template-columns:22px auto 1fr auto; gap:11px;
+  align-items:start; padding:11px 16px; border-bottom:1px solid var(--line);
+}
+.row:last-child{border-bottom:none;}
+.row.checked{background:var(--ok-bg);}
+.row.checked .part-name, .row.checked .part-note{opacity:.55; text-decoration:line-through; text-decoration-color:var(--ink-muted);}
+
+input[type=checkbox]{
+  appearance:none; width:19px; height:19px; margin-top:1px;
+  border:1.5px solid var(--line); border-radius:5px; background:var(--surface);
+  cursor:pointer; position:relative; flex-shrink:0;
+}
+input[type=checkbox]:checked{background:var(--ok); border-color:var(--ok);}
+input[type=checkbox]:checked::after{
+  content:""; position:absolute; left:5px; top:1px; width:5px; height:10px;
+  border:solid white; border-width:0 2px 2px 0; transform:rotate(45deg);
+}
+input[type=checkbox]:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+.ref-chip{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--ink-muted);
+  background:var(--chip-bg); border-radius:6px; padding:3px 7px; white-space:nowrap;
+  align-self:start; margin-top:1px;
+}
+.part-name{font-size:.92rem; font-weight:500; line-height:1.35;}
+.part-note{font-size:.79rem; color:var(--ink-muted); margin-top:3px; line-height:1.5;}
+.part-note a{color:var(--accent); text-decoration:none; border-bottom:1px solid currentColor;}
+.badge{
+  display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:.66rem;
+  font-weight:600; letter-spacing:.02em; padding:1.5px 6px; border-radius:5px;
+  background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-line);
+  margin-left:6px; vertical-align:1px;
+}
+.qty{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:.85rem; text-align:right; white-space:nowrap; padding-top:1px;
+}
+.qty span{color:var(--ink-muted); font-size:.68rem; display:block; text-align:right;}
+
+.gaps details{border-color:var(--warn-line); background:var(--warn-bg);}
+.gaps .row{border-bottom-color:var(--warn-line);}
+.gaps .row.checked{background:var(--ok-bg);}
+
+footer{color:var(--ink-muted); font-size:.78rem; margin-top:26px; line-height:1.6;}
+footer code{font-family:"IBM Plex Mono",monospace; background:var(--chip-bg); padding:1px 5px; border-radius:4px;}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<h1>EchoSafe — Parts to Buy</h1>
+<p class="subtitle">One complete unit: central pod + 4 earpiece modules. Quantities pulled straight from all 5 boards' generated BOMs (<span class="mono">kicad-cli sch export bom</span>, 2026-09-16) and consolidated by part. Check items off as you order — checks are saved in this browser only.</p>
+
+<div class="progress-bar">
+  <div class="progress-row">
+    <div class="progress-count"><b id="checkedCount">0</b><span id="totalCount">/0</span> line items ordered</div>
+    <button class="reset-btn" id="resetBtn">Reset checklist</button>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<section id="list"></section>
+
+<footer>
+  Sourced from <code>hardware/*/outputs/*-BOM.csv</code> (all 5 KiCad projects) plus the part choices documented in <code>CLAUDE.md</code> → Hardware → Footprints. Two rows carry a <span class="badge">UNVERIFIED FIT</span> badge — their footprints are datasheet-derived, not measured against the physical part; confirm before ordering board-mount versions in bulk. This is a single-unit list; multiply quantities for more than one device.
+</footer>
+
+<script>
+const DATA = [
+  {
+    name: "ICs / Semiconductors",
+    items: [
+      { refs:"U1", name:"ESP32-S3-WROOM-1-N16R8", note:"Main MCU module — 16MB flash / 8MB OPI PSRAM. Central pod only.", qty:1 },
+      { refs:"U2", name:"MAX98357A (MAX98357AETE+T)", note:"I2S Class-D amp, QFN16. Drives LS1+LS2 in parallel (8Ω each → 4Ω combined, within spec).", qty:1 },
+      { refs:"U3, U6, U7, U8", name:"DRV2605L (DRV2605LDGS)", note:"Haptic motor driver, VSSOP-10. One per motor, behind the I2C mux.", qty:4 },
+      { refs:"U5", name:"TCA9548A", note:"8-channel I2C mux, TSSOP-24. Only 4 of 8 channels used (haptics).", qty:1 },
+    ]
+  },
+  {
+    name: "Power",
+    items: [
+      { refs:"BT1", name:"3.7V 350mAh Li-ion polymer battery", note:"Must ship with a pre-attached JST-PH 2-pin connector — confirmed with user, footprint assumes this.", qty:1 },
+      { refs:"J1 (pod)", name:"TP4056 charger module (HiLetGo)", note:"<a href=\"https://www.amazon.com/dp/B07PKND8KG\" target=\"_blank\" rel=\"noopener\">Amazon B07PKND8KG</a> — w/ battery protection, onboard USB port.<span class=\"badge\">UNVERIFIED FIT</span> Footprint pad spacing is research-estimated, not measured. Print &amp; use <code>TP4056_fit_test_template.pdf</code> against the real module before ordering boards.", qty:1 },
+      { refs:"LD1", name:"LD1117V33 3.3V regulator breakout (SparkFun)", note:"Fixed 3.3V linear reg, takes TP4056's VSYS → single 3V3_SYS rail for everything else.", qty:1 },
+    ]
+  },
+  {
+    name: "Passives (0603 SMD)",
+    items: [
+      { refs:"C1, C2, C16", name:"10µF ceramic capacitor, 0603", note:"LD1117V33 bulk caps + VSYS bulk (absorbs haptic current transients).", qty:3 },
+      { refs:"C3, C4, C15", name:"100nF ceramic capacitor, 0603", note:"LD1117V33 local bypass + ESP32 3V3 pin bypass.", qty:3 },
+      { refs:"C5–C8, C9–C14, C17", name:"1µF ceramic capacitor, 0603", note:"DRV2605 REG pins (×4), per-mic VDD decoupling (×4, one per earpiece module), TCA9548A + MAX98357A decoupling, ESP32 3V3 bulk pair.", qty:12 },
+      { refs:"R1, R2", name:"10kΩ resistor, 0603", note:"R1: ESP32 EN/CHIP_PU pull-up (RC delay w/ C18). R2: TCA9548A RESET pull-up.", qty:2 },
+    ]
+  },
+  {
+    name: "Transducers",
+    items: [
+      { refs:"MIC1–MIC4", name:"ICS-43434 MEMS microphone", note:"InvenSense/TDK, LGA-6. Also stocked as <a href=\"https://www.lcsc.com/product-detail/C5656610.html\" target=\"_blank\" rel=\"noopener\">LCSC C5656610</a> with a community-verified footprint independently cross-checked against this project's own.<span class=\"badge\">UNVERIFIED FIT</span> Pad geometry is datasheet-derived; not yet checked against a physical part in hand.", qty:4 },
+      { refs:"M1–M4", name:"C0720B001F vibration motor", note:"One per quadrant, driven by its own DRV2605L channel via the I2C mux.", qty:4 },
+      { refs:"LS1, LS2", name:"Adafruit #4227 Mini Oval Speaker, 8Ω 1W", note:"<a href=\"https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140\" target=\"_blank\" rel=\"noopener\">DigiKey 1528-4227-ND</a>. Front modules only. Ships with its own ~10mm cable + Molex PicoBlade plug already attached — see connectors below for the board-side mate.", qty:2 },
+    ]
+  },
+  {
+    name: "Board-mount connectors",
+    items: [
+      { refs:"J2, J3 (pod) + J1 (FrontLeft, FrontRight)", name:"JST-SH 9-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM09B-SRSS-TB</span>. Solders onto both ends of each front harness cable (WS/BCLK/DOUT/3V3/GND + motor OUTP/OUTN + speaker OUTP/OUTN).", qty:4 },
+      { refs:"J4, J5 (pod) + J1 (RearLeft, RearRight)", name:"JST-SH 7-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM07B-SRSS-TB</span>. Same idea, rear modules (no speaker pins).", qty:4 },
+      { refs:"LS1, LS2 footprint", name:"Molex PicoBlade 2-pin SMD receptacle, 1.25mm pitch", note:"<span class=\"mono\">53261-0271</span>. Board-side mate for each speaker's own attached cable plug.", qty:2 },
+    ]
+  },
+];
+
+const GAPS = {
+  name: "Not in any board BOM — source separately",
+  items: [
+    { refs:"—", name:"4× JST-SH cable assemblies (harness)", note:"KiCad's BOM only lists the board-mount receptacles above, not the cables that connect each earpiece module to the pod. Need 2× pre-made 9-pin 1.0mm-pitch JST-SH pigtails (front L/R) and 2× 7-pin 1.0mm-pitch JST-SH pigtails (rear L/R) — or crimp housings + contacts + wire to build them by hand. Star topology, confirmed: one dedicated cable per module, not daisy-chained.", qty:4 },
+    { refs:"—", name:"Enclosure / mounting hardware", note:"Not addressed anywhere in the schematics or PCB layouts yet — out of scope of this hardware review.", qty:"—" },
+  ]
+};
+
+function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+function rowHTML(catIdx, item, i){
+  const id = `chk-${catIdx}-${i}`;
+  return `<div class="row" data-id="${id}">
+    <input type="checkbox" id="${id}">
+    <span class="ref-chip">${item.refs}</span>
+    <div>
+      <div class="part-name"><label for="${id}">${item.name}</label></div>
+      <div class="part-note">${item.note}</div>
+    </div>
+    <div class="qty">${item.qty}<span>qty</span></div>
+  </div>`;
+}
+
+function render(){
+  const list = document.getElementById('list');
+  let html = '';
+  let totalItems = 0;
+
+  DATA.forEach((cat, ci) => {
+    totalItems += cat.items.length;
+    html += `<details open>
+      <summary><span class="cat-name">${cat.name} <span class="cat-count">${cat.items.length} lines</span></span></summary>
+      <div class="rows">${cat.items.map((it,i)=>rowHTML(ci,it,i)).join('')}</div>
+    </details>`;
+  });
+
+  const gapCatIdx = DATA.length;
+  totalItems += GAPS.items.length;
+  html += `<section class="gaps"><details open>
+    <summary><span class="cat-name">${GAPS.name} <span class="cat-count">${GAPS.items.length} lines</span></span></summary>
+    <div class="rows">${GAPS.items.map((it,i)=>rowHTML(gapCatIdx,it,i)).join('')}</div>
+  </details></section>`;
+
+  list.innerHTML = html;
+  document.getElementById('totalCount').textContent = `/${totalItems}`;
+  loadState();
+  updateProgress();
+
+  list.addEventListener('change', e => {
+    if (e.target.matches('input[type=checkbox]')) {
+      const row = e.target.closest('.row');
+      row.classList.toggle('checked', e.target.checked);
+      saveState();
+      updateProgress();
+    }
+  });
+}
+
+function allCheckboxes(){ return Array.from(document.querySelectorAll('#list input[type=checkbox]')); }
+
+function updateProgress(){
+  const boxes = allCheckboxes();
+  const checked = boxes.filter(b=>b.checked).length;
+  document.getElementById('checkedCount').textContent = checked;
+  const pct = boxes.length ? (checked/boxes.length*100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function saveState(){
+  try {
+    const state = {};
+    allCheckboxes().forEach(b => state[b.id] = b.checked);
+    localStorage.setItem('echosafe-shopping-list', JSON.stringify(state));
+  } catch(e){}
+}
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem('echosafe-shopping-list');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    Object.entries(state).forEach(([id, checked]) => {
+      const box = document.getElementById(id);
+      if (box) {
+        box.checked = checked;
+        box.closest('.row').classList.toggle('checked', checked);
+      }
+    });
+  } catch(e){}
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  allCheckboxes().forEach(b => { b.checked = false; b.closest('.row').classList.remove('checked'); });
+  try { localStorage.removeItem('echosafe-shopping-list'); } catch(e){}
+  updateProgress();
+});
+
+render();
+</script>

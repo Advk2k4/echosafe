@@ -1419,6 +1419,40 @@ The TP4056/mic-footprint physical-verification caveats from
 the *files* are well-formed and manufacturable, not that the footprints
 match the real parts. See "Attempted physical verification" above.
 
+### Consolidated Shopping List (2026-09-21)
+
+Built `hardware/EchoSafe_RevA/outputs/echosafe_shopping_list.html`, an
+interactive checklist (checkbox state saved per-browser via
+`localStorage`, not server-side) covering everything needed to buy for
+**one complete unit** (central pod + 4 earpiece modules). Consolidated
+by directly reading all 5 boards' generated BOMs
+(`hardware/*/outputs/*-BOM.csv`, from "Fab Outputs" above) and summing
+quantities per part across boards, e.g. the "1µF 0603 cap" line is 8 on
+the central pod (C5-C8 REG pins, C13/C14 mux/amp decoupling, C17 ESP32
+bulk) + 1 per earpiece module (C9-C12, mic VDD decoupling) = 12 total,
+not just whatever one board's BOM shows in isolation.
+
+Grouped into: ICs/semiconductors, power (battery/TP4056/LD1117V33),
+0603 passives, transducers (mics/motors/speakers), and board-mount
+connectors (JST-SH receptacles, PicoBlade receptacle) — plus a
+separately-flagged **"not in any board BOM" section**, which is the one
+real gap this consolidation surfaced: `kicad-cli sch export bom` only
+lists parts that solder onto a board, so the 4 point-to-point harness
+cables connecting each earpiece module to the central pod (2×9-pin +
+2×7-pin, 1.0mm-pitch JST-SH, star topology per "Still needed... item 7"
+above) never appear in any of the 5 CSVs — they'd be silently missing
+from a shopping list built by just concatenating the BOMs. Flagged
+explicitly rather than silently omitted.
+
+Two rows carry the same "footprint not yet physically verified" caveat
+already documented above (TP4056 module, ICS-43434 mic) rather than
+restating it as new information — sourcing links included where already
+established in "Footprints" (Adafruit/DigiKey speaker, LCSC mic,
+HiLetGo TP4056 Amazon listing) rather than re-researched.
+
+This is a single-unit list — quantities would need multiplying for more
+than one device, which isn't handled by the tool itself.
+
 ### Multi-Board Project Structure (2026-09-12)
 
 `hardware/` now holds **5 independent KiCad projects**, not one:
