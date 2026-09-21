@@ -216,6 +216,91 @@ C++ that a real ESP-IDF toolchain accepts — it does not confirm the
 firmware actually works correctly on real hardware, which still hasn't
 happened (see "Current Status" at the top of this file).
 
+### TDOA / Direction-Detection Math Audit (2026-09-20/21)
+
+`detect_direction()` and `xcorr_lag()` — the GCC-PHAT-style lag +
+energy-ratio logic behind Phase 2 (see the file's own "Two-Phase
+Operation" comment at the top) — had never been reviewed for
+correctness, as opposed to the I2S mode-switching around it. No
+hardware exists to test this against real audio, so every claim below
+was verified numerically instead: either by direct mathematical proof,
+or by porting the exact C logic to Python and running it against
+synthetic signals with known ground truth (scripts not checked into
+the repo, scratch-only, but the method and results are recorded here
+since they're the actual evidence behind each fix).
+
+**First, verified correct (not assumed):** the lag-sign convention.
+`xcorr_lag(a, b, n)`'s doc comment claims "positive lag → a leads b →
+sound came from a's side." Rederived this from scratch via the
+underlying physics (if mic A is closer to the source, sound arrives at
+A first, so the *same* acoustic event appears at a *later* buffer index
+in B than in A by exactly the propagation-time difference) rather than
+trusting the comment, and confirmed the code's `a[i] * b[i+lag]`
+correlation does peak at `lag = (b's delay) − (a's delay)`, matching
+the claimed convention exactly. Cross-checked against the physical mic
+layout too: `xcorr_lag(g_tl, g_tr, ...)` with `left_top = lag_top > 2`
+correctly implies "TL received the sound first → source is on the
+left," consistent with TL/TR's real positions.
+
+**Fix 1 — dead computation removed.** `xcorr_lag()` computed
+`norm = sqrt(ea*eb)` (the two signals' total energy) and divided every
+lag candidate's correlation by it before comparing. Since `norm` is the
+*same* constant for every candidate in the `argmax` search, dividing
+every value in a set by the same positive constant can never change
+which one is largest — and the divided value was never used for
+anything except that comparison (only `best_lag` is returned). It was
+two full 1024-sample energy-sum passes plus a `sqrtf()`, per call, for
+zero effect on the output. Removed. Verified three ways: (1) the
+argmax-invariance argument itself, (2) a 200-trial simulation
+(synthetic signal + a known injected sample-shift per trial, spanning
+the full ±24-sample `MAX_LAG` range) confirming the old and new
+implementations return identical `best_lag` on every trial, *and* both
+recover the injected true shift exactly every time, (3) recompiles
+clean, 80 bytes smaller.
+
+**Fix 2 — asymmetric top/bottom threshold, and the deeper bug it was
+hiding.** `is_top = tb > 0.0f` vs. `is_bot = tb < -0.15f` — asymmetric,
+unlike every other comparison in this function (e.g. the ±2-sample
+dead-zone for left/right). Changed to a symmetric `tb > 0.15f` per
+direct confirmation this wasn't an intentional design choice. But
+simulating the *full* decision cascade before and after that one-number
+change produced **identical** quadrant-selection statistics either way
+— which is what actually caught the real bug: the cascade had fallback
+branches (`else if (agree_left) quad = HAPTIC_TL;` and, further down,
+`else if (left_top) quad = HAPTIC_TL;` / `else if (right_top) quad =
+HAPTIC_TR;`) that fired whenever left/right was known but top/bottom
+was *ambiguous* (neither `is_top` nor `is_bot`), and always defaulted
+to a **top** quadrant — with no equivalent "default to bottom" branch
+anywhere. Worse: `left_bot`/`right_bot` alone didn't even check
+`is_top`/`is_bot` at all, just committed straight to a bottom quadrant
+unconditionally. The bias lived entirely in this fallback structure,
+independent of wherever `is_top`'s threshold happened to sit — which is
+exactly why changing just the threshold number didn't move the
+simulated statistics at all.
+
+Restructured the cascade so every branch requires *both* a left/right
+read and a confident top/bottom read before committing to a quadrant;
+what's left ambiguous (left/right known but top/bottom isn't, or
+neither) now falls through to the existing loudest-single-mic
+tiebreaker (which weighs all 4 mics evenly) instead of guessing top.
+`left_bot`/`right_bot` now get the same `is_top`/`is_bot` treatment
+`left_top`/`right_top` already had, instead of skipping it. Verified
+with a second simulation, this time of the actual restructured cascade
+(not just the threshold), using a scenario designed to have a
+genuinely unbiased ground truth (`agree_left` true, `tb` swept
+symmetrically around 0, `rms_tl`/`rms_bl` drawn from the identical
+distribution so the loudest-mic tiebreaker is a fair coin flip when it
+fires): **50.3% TL / 49.7% BL** over 40,000 trials — statistically a
+coin flip, vs. **65.9% TL / 34.1% BL** with the original cascade run
+through the identical scenario. Recompiles clean.
+
+Neither fix has been exercised on real hardware/real audio (none
+exists in this project's bring-up state yet) — both are verified
+against the algorithm's own logic and known synthetic ground truth,
+not against a real human voice/siren/etc. arriving at a real 4-mic
+array. Worth confirming with the `d` (direction test) serial command
+once hardware exists, per the file's own testing commands.
+
 ### `firmware/echosafe_inference/echosafe_inference.ino` — MINIMAL BRING-UP REFERENCE
 Deliberately stripped down: single mic (I2S_NUM_0) + MLP inference + Serial
 print only. **No speaker, no LittleFS, no WAV playback.** Auto-starts in

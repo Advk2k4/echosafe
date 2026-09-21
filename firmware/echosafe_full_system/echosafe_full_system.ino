@@ -513,17 +513,22 @@ static float rms_of(float* buf, int n) {
 
 // Returns the lag (in samples) at which cross-correlation between a[] and b[] peaks.
 // Positive lag → a leads b → sound came from a's side.
+//
+// No longer normalizes by signal energy: the old norm = sqrt(ea*eb) was the
+// same constant for every lag in the search, so dividing every candidate by
+// it could never change which lag has the largest acc -- and the divided
+// value was never used for anything else (only best_lag is returned). It
+// was pure dead computation: two full n-sample energy sums plus a sqrtf(),
+// for no effect on the result. Verified by the argmax-invariance argument
+// itself (dividing a set of values by the same positive constant preserves
+// their relative order), not just by inspection.
 static int xcorr_lag(float* a, float* b, int n) {
-  float ea = 0.0f, eb = 0.0f;
-  for (int i = 0; i < n; i++) { ea += a[i] * a[i]; eb += b[i] * b[i]; }
-  float norm = sqrtf(ea * eb) + 1e-12f;
   float best = -1e30f; int best_lag = 0;
   for (int lag = -MAX_LAG; lag <= MAX_LAG; lag++) {
     float acc = 0.0f;
     int lo = (lag < 0) ? -lag : 0;
     int hi = (lag < 0) ? n    : n - lag;
     for (int i = lo; i < hi; i++) acc += a[i] * b[i + lag];
-    acc /= norm;
     if (acc > best) { best = acc; best_lag = lag; }
   }
   return best_lag;
@@ -573,7 +578,13 @@ int detect_direction() {
   float top_e = (rms_tl + rms_tr) * 0.5f;
   float bot_e = (rms_bl + rms_br) * 0.5f;
   float tb    = (top_e - bot_e) / max(top_e + bot_e, 1e-6f); // +1→all top, -1→all bot
-  bool is_top = tb >  0.0f;
+  // Symmetric +-0.15 dead-zone, matching the +-2-sample dead-zone used for
+  // left/right below -- was tb > 0.0f (any top bias at all, however tiny),
+  // which structurally biased the whole decision cascade toward the top
+  // quadrants for any tb in (-0.15, 0]: the agree_left/agree_right fallback
+  // a few lines down has no equivalent "default to bottom" case, so a
+  // dead-even or up-to-15%-bottom-dominant signal always resolved to TL/TR.
+  bool is_top = tb >  0.15f;
   bool is_bot = tb < -0.15f;
 
   // Left/right vote from both lag pairs
@@ -587,25 +598,41 @@ int detect_direction() {
   Serial.printf("  [DIR] tb=%.3f is_top=%d is_bot=%d agree_L=%d agree_R=%d\n",
                 tb, is_top, is_bot, agree_left, agree_right);
 
-  int quad;
-  // Strong agreement from both mic pairs
+  // Every branch below requires BOTH a left/right read (from lag) AND a
+  // confident top/bottom read (from energy) before committing to a
+  // quadrant. Previously, several branches (agree_left/agree_right, and
+  // left_top/right_top alone) fell back to the TOP quadrant whenever
+  // top/bottom was ambiguous, and left_bot/right_bot alone committed to
+  // BOTTOM without ever consulting is_top/is_bot at all -- a structural
+  // bias toward top, not just a threshold tuning issue (confirmed by
+  // simulating the old cascade: it gave the same top-biased split
+  // regardless of where is_top's threshold was set, since the bias lived
+  // in these fallback branches, not in the threshold value). Genuinely
+  // ambiguous cases (left/right known, top/bottom not, or neither) now
+  // fall through to the loudest-single-mic tiebreaker below instead of
+  // guessing a quadrant.
+  int quad = -1;
+  // Strongest evidence: both mic pairs agree on left/right.
   if      (agree_left  && is_top) quad = HAPTIC_TL;
   else if (agree_left  && is_bot) quad = HAPTIC_BL;
   else if (agree_right && is_top) quad = HAPTIC_TR;
   else if (agree_right && is_bot) quad = HAPTIC_BR;
-  else if (agree_left)            quad = HAPTIC_TL;
-  else if (agree_right)           quad = HAPTIC_TR;
-  // Single-pair evidence
+  // Weaker evidence: only one mic pair's lag gives a left/right read.
+  // Treated symmetrically regardless of whether that pair is the top or
+  // bottom one -- lag decides left/right, energy decides top/bottom,
+  // independently of which pair happened to produce the usable lag.
   else if (left_top  && is_top)   quad = HAPTIC_TL;
   else if (left_top  && is_bot)   quad = HAPTIC_BL;
-  else if (left_top)              quad = HAPTIC_TL;
   else if (right_top && is_top)   quad = HAPTIC_TR;
   else if (right_top && is_bot)   quad = HAPTIC_BR;
-  else if (right_top)             quad = HAPTIC_TR;
-  else if (left_bot)              quad = HAPTIC_BL;
-  else if (right_bot)             quad = HAPTIC_BR;
-  else {
-    // Fallback: loudest mic wins
+  else if (left_bot  && is_top)   quad = HAPTIC_TL;
+  else if (left_bot  && is_bot)   quad = HAPTIC_BL;
+  else if (right_bot && is_top)   quad = HAPTIC_TR;
+  else if (right_bot && is_bot)   quad = HAPTIC_BR;
+
+  if (quad < 0) {
+    // Fallback: loudest mic wins -- covers every case above where
+    // left/right and/or top/bottom couldn't be confidently resolved.
     float rms_all[4] = { rms_tl, rms_tr, rms_bl, rms_br };
     int map[4] = { HAPTIC_TL, HAPTIC_TR, HAPTIC_BL, HAPTIC_BR };
     int best = 0;
