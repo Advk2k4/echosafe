@@ -49,6 +49,14 @@ h1{font-size:1.5rem; margin:0 0 2px; letter-spacing:-0.01em;}
   padding:4px 8px; cursor:pointer;
 }
 .reset-btn:hover{color:var(--ink); border-color:var(--ink-muted);}
+.cost-row{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);
+  font-size:.85rem; color:var(--ink-muted);
+}
+.cost-row b{font-size:1rem; color:var(--ink); font-variant-numeric:tabular-nums;}
+.cost-caveat{font-size:.7rem; color:var(--ink-muted); margin-top:6px; line-height:1.5;}
+.price-note{font-size:.68rem; color:var(--ink-muted); margin-top:4px; font-family:"IBM Plex Mono",monospace;}
 
 details{
   background:var(--surface); border:1px solid var(--line); border-radius:12px;
@@ -127,6 +135,11 @@ footer code{font-family:"IBM Plex Mono",monospace; background:var(--chip-bg); pa
     <button class="reset-btn" id="resetBtn">Reset checklist</button>
   </div>
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="cost-row">
+    <div>Estimated total: <b class="mono" id="costTotal">$0.00</b></div>
+    <div>Still to buy: <b class="mono" id="costRemaining">$0.00</b></div>
+  </div>
+  <div class="cost-caveat">Parts only, real prices as of 2026-09-22 — excludes PCB fabrication (5 boards, no quote pulled) and shipping across ~6 vendors (LCSC, Adafruit, SparkFun, Amazon, PCBoard.ca, DigiKey).</div>
 </div>
 
 <section id="list"></section>
@@ -140,43 +153,43 @@ const DATA = [
   {
     name: "ICs / Semiconductors",
     items: [
-      { refs:"U1", name:"ESP32-S3-WROOM-1-N16R8", note:"Main MCU module — 16MB flash / 8MB OPI PSRAM. Central pod only.", qty:1 },
-      { refs:"U2", name:"MAX98357A (MAX98357AETE+T)", note:"I2S Class-D amp, QFN16. Drives LS1+LS2 in parallel (8Ω each → 4Ω combined, within spec).", qty:1 },
-      { refs:"U3, U6, U7, U8", name:"DRV2605L (DRV2605LDGS)", note:"Haptic motor driver, VSSOP-10. One per motor, behind the I2C mux.", qty:4 },
-      { refs:"U5", name:"TCA9548A", note:"8-channel I2C mux, TSSOP-24. Only 4 of 8 channels used (haptics).", qty:1 },
+      { refs:"U1", name:"ESP32-S3-WROOM-1-N16R8", note:"Main MCU module — 16MB flash / 8MB OPI PSRAM. Central pod only.", qty:1, price:5.20, priceNote:"$5.20 ea — LCSC C2913202" },
+      { refs:"U2", name:"MAX98357A (MAX98357AETE+T)", note:"I2S Class-D amp, QFN16. Drives LS1+LS2 in parallel (8Ω each → 4Ω combined, within spec).", qty:1, price:1.33, priceNote:"$1.33 ea — LCSC C910544" },
+      { refs:"U3, U6, U7, U8", name:"DRV2605L (DRV2605LDGS)", note:"Haptic motor driver, VSSOP-10. One per motor, behind the I2C mux.", qty:4, price:5.60, priceNote:"$1.40 ea × 4 — LCSC C527464" },
+      { refs:"U5", name:"TCA9548A", note:"8-channel I2C mux, TSSOP-24. Only 4 of 8 channels used (haptics).", qty:1, price:0.83, priceNote:"$0.83 ea — LCSC C130026" },
     ]
   },
   {
     name: "Power",
     items: [
-      { refs:"BT1", name:"3.7V 350mAh Li-ion polymer battery", note:"Must ship with a pre-attached JST-PH 2-pin connector — confirmed with user, footprint assumes this.", qty:1 },
-      { refs:"J1 (pod)", name:"TP4056 charger module (HiLetGo)", note:"<a href=\"https://www.amazon.com/dp/B07PKND8KG\" target=\"_blank\" rel=\"noopener\">Amazon B07PKND8KG</a> — w/ battery protection, onboard USB port.<span class=\"badge\">UNVERIFIED FIT</span> Footprint pad spacing is research-estimated, not measured. Print &amp; use <code>TP4056_fit_test_template.pdf</code> against the real module before ordering boards.", qty:1 },
-      { refs:"LD1", name:"LD1117V33 3.3V regulator breakout (SparkFun)", note:"Fixed 3.3V linear reg, takes TP4056's VSYS → single 3V3_SYS rail for everything else.", qty:1 },
+      { refs:"BT1", name:"3.7V 350mAh Li-ion polymer battery", note:"Must ship with a pre-attached JST-PH 2-pin connector — confirmed with user, footprint assumes this. <a href=\"https://www.adafruit.com/product/2750\" target=\"_blank\" rel=\"noopener\">Adafruit #2750</a> is an exact match.", qty:1, price:6.95, priceNote:"$6.95 — Adafruit #2750" },
+      { refs:"J1 (pod)", name:"TP4056 charger module (HiLetGo)", note:"<a href=\"https://www.amazon.com/dp/B07PKND8KG\" target=\"_blank\" rel=\"noopener\">Amazon B07PKND8KG</a> — w/ battery protection, onboard USB port.<span class=\"badge\">UNVERIFIED FIT</span> Footprint pad spacing is research-estimated, not measured. Print &amp; use <code>TP4056_fit_test_template.pdf</code> against the real module before ordering boards.", qty:1, price:5.99, priceNote:"$5.99 — sold as a 3-pack, only 1 needed (2 spares)" },
+      { refs:"LD1", name:"LD1117V33 3.3V regulator breakout (SparkFun)", note:"Fixed 3.3V linear reg, takes TP4056's VSYS → single 3V3_SYS rail for everything else.", qty:1, price:1.25, priceNote:"$1.25 — SparkFun" },
     ]
   },
   {
     name: "Passives (0603 SMD)",
     items: [
-      { refs:"C1, C2, C16", name:"10µF ceramic capacitor, 0603", note:"LD1117V33 bulk caps + VSYS bulk (absorbs haptic current transients).", qty:3 },
-      { refs:"C3, C4, C15", name:"100nF ceramic capacitor, 0603", note:"LD1117V33 local bypass + ESP32 3V3 pin bypass.", qty:3 },
-      { refs:"C5–C8, C9–C14, C17", name:"1µF ceramic capacitor, 0603", note:"DRV2605 REG pins (×4), per-mic VDD decoupling (×4, one per earpiece module), TCA9548A + MAX98357A decoupling, ESP32 3V3 bulk pair.", qty:12 },
-      { refs:"R1, R2", name:"10kΩ resistor, 0603", note:"R1: ESP32 EN/CHIP_PU pull-up (RC delay w/ C18). R2: TCA9548A RESET pull-up.", qty:2 },
+      { refs:"C1, C2, C16", name:"10µF ceramic capacitor, 0603", note:"LD1117V33 bulk caps + VSYS bulk (absorbs haptic current transients).", qty:3, price:0.08, priceNote:"~$0.025 ea × 3 (commodity-part estimate, not individually verified — see 1µF below)" },
+      { refs:"C3, C4, C15", name:"100nF ceramic capacitor, 0603", note:"LD1117V33 local bypass + ESP32 3V3 pin bypass.", qty:3, price:0.08, priceNote:"~$0.025 ea × 3 (commodity-part estimate)" },
+      { refs:"C5–C8, C9–C14, C17", name:"1µF ceramic capacitor, 0603", note:"DRV2605 REG pins (×4), per-mic VDD decoupling (×4, one per earpiece module), TCA9548A + MAX98357A decoupling, ESP32 3V3 bulk pair.", qty:12, price:0.30, priceNote:"$0.0246 ea (10+ qty) × 12 — LCSC C5199872, the one value actually checked; other two values priced the same, commodity 0603 X7R" },
+      { refs:"R1, R2", name:"10kΩ resistor, 0603", note:"R1: ESP32 EN/CHIP_PU pull-up (RC delay w/ C18). R2: TCA9548A RESET pull-up.", qty:2, price:0.04, priceNote:"~$0.02 ea × 2 (commodity-part estimate)" },
     ]
   },
   {
     name: "Transducers",
     items: [
-      { refs:"MIC1–MIC4", name:"ICS-43434 MEMS microphone", note:"InvenSense/TDK, LGA-6. Also stocked as <a href=\"https://www.lcsc.com/product-detail/C5656610.html\" target=\"_blank\" rel=\"noopener\">LCSC C5656610</a> with a community-verified footprint independently cross-checked against this project's own.<span class=\"badge\">UNVERIFIED FIT</span> Pad geometry is datasheet-derived; not yet checked against a physical part in hand.", qty:4 },
-      { refs:"M1–M4", name:"C0720B001F vibration motor", note:"One per quadrant, driven by its own DRV2605L channel via the I2C mux.", qty:4 },
-      { refs:"LS1, LS2", name:"Adafruit #4227 Mini Oval Speaker, 8Ω 1W", note:"<a href=\"https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140\" target=\"_blank\" rel=\"noopener\">DigiKey 1528-4227-ND</a>. Front modules only. Ships with its own ~10mm cable + Molex PicoBlade plug already attached — see connectors below for the board-side mate.", qty:2 },
+      { refs:"MIC1–MIC4", name:"ICS-43434 MEMS microphone", note:"InvenSense/TDK, LGA-6. Also stocked as <a href=\"https://www.lcsc.com/product-detail/C5656610.html\" target=\"_blank\" rel=\"noopener\">LCSC C5656610</a> with a community-verified footprint independently cross-checked against this project's own.<span class=\"badge\">UNVERIFIED FIT</span> Pad geometry is datasheet-derived; not yet checked against a physical part in hand.", qty:4, price:17.13, priceNote:"$4.283 ea × 4 — LCSC C5656610" },
+      { refs:"M1–M4", name:"C0720B001F vibration motor", note:"One per quadrant, driven by its own DRV2605L channel via the I2C mux.", qty:4, price:4.76, priceNote:"~$1.19 ea × 4 — Jameco (price from search index, not a live page load — Jameco was unreachable directly during this pass)" },
+      { refs:"LS1, LS2", name:"Adafruit #4227 Mini Oval Speaker, 8Ω 1W", note:"<a href=\"https://www.digikey.com/en/products/detail/adafruit-industries-llc/4227/10245140\" target=\"_blank\" rel=\"noopener\">DigiKey 1528-4227-ND</a>. Front modules only. Ships with its own ~10mm cable + Molex PicoBlade plug already attached — see connectors below for the board-side mate. <strong>Currently out of stock directly at Adafruit</strong> (checked 2026-09-22) — buy via the DigiKey link.", qty:2, price:3.90, priceNote:"$1.95 ea × 2 (Adafruit's listed price; buy via DigiKey since Adafruit is OOS)" },
     ]
   },
   {
     name: "Board-mount connectors",
     items: [
-      { refs:"J2, J3 (pod) + J1 (FrontLeft, FrontRight)", name:"JST-SH 9-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM09B-SRSS-TB</span>. Solders onto both ends of each front harness cable (WS/BCLK/DOUT/3V3/GND + motor OUTP/OUTN + speaker OUTP/OUTN).", qty:4 },
-      { refs:"J4, J5 (pod) + J1 (RearLeft, RearRight)", name:"JST-SH 7-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM07B-SRSS-TB</span>. Same idea, rear modules (no speaker pins).", qty:4 },
-      { refs:"LS1, LS2 footprint", name:"Molex PicoBlade 2-pin SMD receptacle, 1.25mm pitch", note:"<span class=\"mono\">53261-0271</span>. Board-side mate for each speaker's own attached cable plug.", qty:2 },
+      { refs:"J2, J3 (pod) + J1 (FrontLeft, FrontRight)", name:"JST-SH 9-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM09B-SRSS-TB</span>. Solders onto both ends of each front harness cable (WS/BCLK/DOUT/3V3/GND + motor OUTP/OUTN + speaker OUTP/OUTN).", qty:4, price:1.77, priceNote:"$0.4435 ea × 4 — LCSC C160408" },
+      { refs:"J4, J5 (pod) + J1 (RearLeft, RearRight)", name:"JST-SH 7-pin SMD receptacle, 1.0mm pitch", note:"<span class=\"mono\">SM07B-SRSS-TB</span>. Same idea, rear modules (no speaker pins).", qty:4, price:1.61, priceNote:"$0.3211 ea, 5-pack minimum (4 needed) — LCSC C160406" },
+      { refs:"LS1, LS2 footprint", name:"Molex PicoBlade 2-pin SMD receptacle, 1.25mm pitch", note:"<span class=\"mono\">53261-0271</span>. Board-side mate for each speaker's own attached cable plug.", qty:2, price:0.71, priceNote:"$0.142 ea, 5-pack minimum (2 needed) — LCSC C177225" },
     ]
   },
 ];
@@ -184,9 +197,9 @@ const DATA = [
 const GAPS = {
   name: "Not in any board BOM — source separately",
   items: [
-    { refs:"J2↔J1 (FrontLeft), J3↔J1 (FrontRight)", name:"JST SH 9-Pin Cable, female-female, 100mm", note:"<a href=\"https://www.adafruit.com/product/4350\" target=\"_blank\" rel=\"noopener\">Adafruit #4350</a>, $1.95 each — verified real, in-stock, 1.0mm pitch, JST-SH female connectors on <em>both</em> ends. Plugs directly into the pod's J2/J3 receptacle and the matching module's J1 receptacle, no assembly needed.", qty:2 },
-    { refs:"J4↔J1 (RearLeft), J5↔J1 (RearRight)", name:"JST SH 7-pin female-female cable — no off-the-shelf part found", note:"Adafruit doesn't stock a 7-pin version. Realistic options, neither a single verified first-party part like the 9-pin above: (1) a generic 1.0mm-pitch JST-SH connector kit (e.g. <a href=\"https://www.amazon.com/s?k=JST+SH+1.0mm+connector+kit+3-10+pin+female+housing+pre-crimped\" target=\"_blank\" rel=\"noopener\">search \"JST SH 1.0mm connector kit 3-10 pin\"</a>, ~$17, includes 7-pin female housings + pre-crimped wire — no soldering, hand-assemble two 7-pin female-female cables at whatever length is needed); or (2) 2× <a href=\"https://www.pcboard.ca/jst-sh-7-pin-cable\" target=\"_blank\" rel=\"noopener\">PCBoard.ca's 7-Pin Receptacle Cable</a> ($0.90 each, connector on one end / bare tinned wire on the other) spliced together at the bare-wire ends with heatshrink.", qty:2 },
-    { refs:"—", name:"Enclosure / mounting hardware", note:"Not addressed anywhere in the schematics or PCB layouts yet — out of scope of this hardware review.", qty:"—" },
+    { refs:"J2↔J1 (FrontLeft), J3↔J1 (FrontRight)", name:"JST SH 9-Pin Cable, female-female, 100mm", note:"<a href=\"https://www.adafruit.com/product/4350\" target=\"_blank\" rel=\"noopener\">Adafruit #4350</a>, $1.95 each — verified real, in-stock, 1.0mm pitch, JST-SH female connectors on <em>both</em> ends. Plugs directly into the pod's J2/J3 receptacle and the matching module's J1 receptacle, no assembly needed.", qty:2, price:3.90, priceNote:"$1.95 ea × 2 — Adafruit #4350" },
+    { refs:"J4↔J1 (RearLeft), J5↔J1 (RearRight)", name:"JST SH 7-pin female-female cable — no off-the-shelf part found", note:"Adafruit doesn't stock a 7-pin version. Costed below using option (2): 4× <a href=\"https://www.pcboard.ca/jst-sh-7-pin-cable\" target=\"_blank\" rel=\"noopener\">PCBoard.ca's 7-Pin Receptacle Cable</a> ($0.90 each, connector on one end / bare tinned wire on the other), splicing 2 pairs together at the bare-wire ends with heatshrink to make 2 double-ended cables. Alternative: a generic 1.0mm-pitch JST-SH connector kit (e.g. <a href=\"https://www.amazon.com/s?k=JST+SH+1.0mm+connector+kit+3-10+pin+female+housing+pre-crimped\" target=\"_blank\" rel=\"noopener\">search \"JST SH 1.0mm connector kit 3-10 pin\"</a>, ~$17, female housings + pre-crimped wire, no soldering) — pricier for just 2 cables but no splicing.", qty:2, price:3.60, priceNote:"$0.90 ea × 4 pigtails (2 spliced pairs) — PCBoard.ca" },
+    { refs:"—", name:"Enclosure / mounting hardware", note:"Not addressed anywhere in the schematics or PCB layouts yet — out of scope of this hardware review.", qty:"—", price:0, priceNote:"not priced — no design exists yet" },
   ]
 };
 
@@ -194,14 +207,16 @@ function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-
 
 function rowHTML(catIdx, item, i){
   const id = `chk-${catIdx}-${i}`;
-  return `<div class="row" data-id="${id}">
+  const priceStr = typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : '—';
+  return `<div class="row" data-id="${id}" data-price="${item.price || 0}">
     <input type="checkbox" id="${id}">
     <span class="ref-chip">${item.refs}</span>
     <div>
       <div class="part-name"><label for="${id}">${item.name}</label></div>
       <div class="part-note">${item.note}</div>
+      ${item.priceNote ? `<div class="price-note">${item.priceNote}</div>` : ''}
     </div>
-    <div class="qty">${item.qty}<span>qty</span></div>
+    <div class="qty">${item.qty}<span>qty</span><span style="margin-top:6px;color:var(--accent);font-weight:600;">${priceStr}</span></div>
   </div>`;
 }
 
@@ -248,6 +263,15 @@ function updateProgress(){
   document.getElementById('checkedCount').textContent = checked;
   const pct = boxes.length ? (checked/boxes.length*100) : 0;
   document.getElementById('progressFill').style.width = pct + '%';
+
+  let total = 0, remaining = 0;
+  boxes.forEach(b => {
+    const price = parseFloat(b.closest('.row').dataset.price) || 0;
+    total += price;
+    if (!b.checked) remaining += price;
+  });
+  document.getElementById('costTotal').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('costRemaining').textContent = `$${remaining.toFixed(2)}`;
 }
 
 function saveState(){

@@ -1536,6 +1536,50 @@ single-ended style as its 7-pin one — Adafruit's #4350 is the better
 choice for the front connectors specifically because it's double-ended,
 not just because it was the first result.
 
+**Priced the whole list (2026-09-22).** User asked for a total cost to
+build one unit. Every line in the shopping list Artifact was previously
+sourced (a real distributor/listing) but not priced — went through and
+got a real current price for each, mostly from LCSC (the only major
+distributor reachable directly in this session; DigiKey and Jameco both
+returned a Cloudflare bot-check page on every attempt) plus Adafruit
+and SparkFun for the parts already sourced there:
+
+| Part | Price | Source |
+|---|---|---|
+| ESP32-S3-WROOM-1-N16R8 | $5.20 | LCSC C2913202 |
+| MAX98357AETE+T | $1.33 | LCSC C910544 |
+| DRV2605LDGSR ×4 | $5.60 | LCSC C527464 |
+| TCA9548APWR | $0.83 | LCSC C130026 |
+| Battery (3.7V 350mAh) | $6.95 | Adafruit #2750 |
+| TP4056 module | $5.99 | Amazon B07PKND8KG (3-pack, 1 needed) |
+| LD1117V33 breakout | $1.25 | SparkFun |
+| Resistors + caps (0603, ×20) | ~$0.42 | commodity estimate off one verified 1µF LCSC price ($0.0246 ea) — only the 1µF value was individually checked, other two values assumed equivalent |
+| JST-SH 9-pin receptacle ×4 | $1.77 | LCSC C160408 |
+| JST-SH 7-pin receptacle ×4 | $1.61 | LCSC C160406 (5-pack min) |
+| Molex PicoBlade receptacle ×2 | $0.71 | LCSC C177225 (5-pack min) |
+| ICS-43434 mic ×4 | $17.13 | LCSC C5656610 |
+| C0720B001F motor ×4 | $4.76 | Jameco, ~$1.19 ea — **price from a Google search snippet, not a live page load**; Jameco itself returned a bot-check page every time it was navigated to directly this session |
+| Adafruit #4227 speaker ×2 | $3.90 | Adafruit's own listed price — **currently out of stock directly at Adafruit** (checked live), buy via the DigiKey link on that product page instead |
+| JST-SH 9-pin cable ×2 | $3.90 | Adafruit #4350 |
+| JST-SH 7-pin cable ×2 | $3.60 | 4× PCBoard.ca pigtails, spliced in pairs |
+
+**Total: ~$65.** Added `price`/`priceNote` fields to every item in the
+shopping list Artifact's JS data, plus a running "estimated total /
+still to buy" readout in the sticky progress header that recomputes
+live as checkboxes are ticked (uses the same per-row `data-price`
+attribute the checklist state already tracks, no new persistence
+mechanism needed).
+
+**Explicitly not included in the $65** — flagged directly in the
+Artifact's own UI, not just here: PCB fabrication for all 5 boards (a
+JLCPCB quote was checked for board size/DRC-pass back in "Fab Outputs"
+above, but no dollar figure was ever recorded — would need a real
+checkout to price) and shipping, which realistically means separate
+charges across ~6 vendors (LCSC, Adafruit, SparkFun, Amazon,
+PCBoard.ca, DigiKey) unless orders get consolidated. Enclosure/
+mounting hardware is priced at $0 in the list since no design exists
+yet to price against.
+
 ### Multi-Board Project Structure (2026-09-12)
 
 `hardware/` now holds **5 independent KiCad projects**, not one:
