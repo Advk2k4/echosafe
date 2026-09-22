@@ -200,13 +200,17 @@ independent warnings, both fixed:
   `%lu`, not guessed). Undefined behavior in principle, though harmless
   in practice on a platform where both are 4 bytes — worth fixing
   regardless since the compiler flags it for a reason.
-Also worth noting, not fixed: this sketch's file sits directly in
-`firmware/` rather than in its own `firmware/uploadLittleFS/` folder,
-so arduino-cli (and the Arduino IDE) can't compile it in place — it
-looks for `firmware/firmware.ino` and fails. Worked around by compiling
-a copy from a correctly-named temp folder; the fix for real would be
-moving the file into its own folder, which wasn't done here since it's
-a structural reorganization beyond what "compile and check" called for.
+**Moved into its own sketch folder (2026-09-22):** this sketch's file
+used to sit directly in `firmware/` rather than in
+`firmware/uploadLittleFS/`, so arduino-cli (and the Arduino IDE)
+couldn't compile it in place — they look for `firmware/firmware.ino`
+and fail. At the time this was worked around by compiling a copy from
+a correctly-named temp folder rather than fixed for real, since it was
+a structural reorganization beyond what that pass's "compile and
+check" scope covered. Now actually moved (`git mv
+firmware/uploadLittleFS.ino firmware/uploadLittleFS/uploadLittleFS.ino`,
+preserving history) and reconfirmed it compiles clean directly from
+its new location — no temp-folder workaround needed anymore.
 
 **Net result: all 4 real sketches in `firmware/` compile cleanly** for
 the actual target hardware (ESP32-S3-WROOM-1 N16R8), with only the one
@@ -320,7 +324,7 @@ Historical reference implementation of the 4-mic TDOA + DRV2605 haptic
 logic that `echosafe_full_system.ino` evolved from. Not a buildable sketch
 on its own (no `.ino` extension) — kept for reference. **Do not delete.**
 
-### `firmware/uploadLittleFS.ino`
+### `firmware/uploadLittleFS/uploadLittleFS.ino`
 WiFi-based web file manager for inspecting LittleFS contents over WiFi.
 **Set `ST_SSID`/`ST_PASS` before use.** Development/debug utility only — do
 not deploy in production.

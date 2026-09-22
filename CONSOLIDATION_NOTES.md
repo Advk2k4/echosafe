@@ -13,7 +13,7 @@ left out.
 | `EchoSafe_ML/echosafe_inference/` | `firmware/echosafe_inference/` | Kept as minimal bring-up reference; `echosafe_full_system.ino` depends on this folder via relative include — keep them siblings |
 | `EchoSafe_ML/echosafe_feature_collector/` | `firmware/echosafe_feature_collector/` | Data collection firmware |
 | `EchoSafe_ML/mic_oldML.c` | `firmware/mic_oldML.c` | Historical reference, copied verbatim |
-| `EchoSafe_ML/uploadLittleFS.ino` | `firmware/uploadLittleFS.ino` | Debug utility |
+| `EchoSafe_ML/uploadLittleFS.ino` | `firmware/uploadLittleFS/uploadLittleFS.ino` | Debug utility (moved into its own sketch folder 2026-09-22 so arduino-cli can compile it in place) |
 | `EchoSafe_ML/data/*.wav` | `firmware/data/` | Alert sound files |
 | `EchoSafe_ML/retrain.py`, `train_on_esp32_features.py`, `download_sounds.py`, `play_sound.py`, `serial_logger.py`, `quick_start.py` | `ml/` | ML pipeline scripts |
 | `EchoSafe_ML/echosafe_dataset.npz` | `ml/echosafe_dataset.npz` | 1059-sample dataset, current |
