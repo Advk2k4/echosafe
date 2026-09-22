@@ -31,6 +31,24 @@ import sys
 EXPECTED_NUM_FRAMES = 31
 EXPECTED_NUM_MFCC   = 13
 
+# get_label_id() below assigns IDs by order of first appearance during a
+# collection session -- fine for extending the existing dataset (where
+# load_existing_dataset() already fixes every known name's ID), but a
+# from-scratch session (a new --output path, or a wiped dataset) would
+# otherwise assign IDs purely by whichever label happens to get typed
+# first, with nothing stopping that from silently mismatching the
+# firmware's fixed positional assumptions (WAV_FILES[] indexed by class
+# ID) or the training scripts' exported CLASS_NAMES. This pins the 5
+# known classes to the same IDs regardless of typing order; a genuinely
+# new class name (a 6th sound) still falls back to the next free ID.
+CANONICAL_LABEL_MAP = {
+    "horns": 0,
+    "noise": 1,
+    "bells": 2,
+    "gunshots": 3,
+    "sirens": 4,
+}
+
 class FeatureLogger:
     def __init__(self, port, baudrate=115200, output_file='echosafe_dataset.npz'):
         self.port = port
@@ -64,7 +82,8 @@ class FeatureLogger:
             if 'label_map' in data:
                 self.label_map = data['label_map'].item()
                 self.next_label_id = max(self.label_map.values()) + 1
-            
+                self._validate_against_canonical_map()
+
             print(f"   Loaded {len(self.features)} existing samples")
             print(f"   Classes: {list(self.label_map.keys())}")
     
@@ -101,11 +120,49 @@ class FeatureLogger:
             class_name = id_to_name.get(label_id, f"Unknown({label_id})")
             print(f"      {class_name}: {count}")
     
+    def _validate_against_canonical_map(self):
+        """Loaded dataset's label_map must agree with CANONICAL_LABEL_MAP
+        on every known class -- if it doesn't, something (a hand-edit, a
+        legacy dataset from before the canonical map existed) has already
+        desynced this dataset from what the firmware/training scripts
+        assume, and continuing to collect into it would compound that
+        silently."""
+        for name, canonical_id in CANONICAL_LABEL_MAP.items():
+            actual_id = self.label_map.get(name)
+            if actual_id is not None and actual_id != canonical_id:
+                raise ValueError(
+                    f"Loaded dataset has '{name}' at class ID {actual_id}, "
+                    f"but the canonical mapping expects {canonical_id} "
+                    f"(CANONICAL_LABEL_MAP = {CANONICAL_LABEL_MAP}). This "
+                    f"dataset's label_map doesn't match what the firmware "
+                    f"and training scripts assume -- do not collect into "
+                    f"it until this is resolved."
+                )
+
     def get_label_id(self, label_name):
-        """Get or create label ID for a label name"""
+        """Get or create label ID for a label name. Known classes (see
+        CANONICAL_LABEL_MAP) always get their fixed ID, regardless of
+        collection order; a genuinely new class name gets the next free
+        ID above whatever's already assigned."""
         if label_name not in self.label_map:
-            self.label_map[label_name] = self.next_label_id
-            self.next_label_id += 1
+            if label_name in CANONICAL_LABEL_MAP:
+                canonical_id = CANONICAL_LABEL_MAP[label_name]
+                taken_by = next(
+                    (n for n, i in self.label_map.items() if i == canonical_id),
+                    None,
+                )
+                if taken_by is not None:
+                    raise ValueError(
+                        f"Can't assign '{label_name}' its canonical ID "
+                        f"{canonical_id} -- '{taken_by}' already has it. "
+                        f"This dataset's label_map has drifted from "
+                        f"CANONICAL_LABEL_MAP; resolve before continuing."
+                    )
+                self.label_map[label_name] = canonical_id
+                self.next_label_id = max(self.next_label_id, canonical_id + 1)
+            else:
+                self.label_map[label_name] = self.next_label_id
+                self.next_label_id += 1
         return self.label_map[label_name]
 
     def check_label_typo(self, label_name):

@@ -667,23 +667,47 @@ synthetic inputs, no serial port needed) — 6/6 checks passed.
    duplicate class — wired into both `get_label_from_user()` (single-
    capture mode) and `batch_collect()`'s label prompt.
 
-**Cross-cutting risk this surfaces, not fixed here (out of scope for a
-script-level review):** because `get_label_id()` assigns IDs by order of
-first appearance, the specific mapping `{horns:0, noise:1, bells:2,
-gunshots:3, sirens:4}` this project currently relies on everywhere
-(firmware's `WAV_FILES[]`, both training scripts' `CLASS_NAMES` export)
-is an accident of collection-session history, not something enforced
-anywhere. It happens to be correct for the current
-`ml/echosafe_dataset.npz` (checked directly: `label_map` really is
-`{horns:0, noise:1, bells:2, gunshots:3, sirens:4}`), but nothing stops
-a future from-scratch collection session (a fresh `--output` path, or
-this file's own `label_map` reconstruction logic run against a
-different starting order) from producing a differently-ordered map that
+**Cross-cutting risk this surfaced (fixed 2026-09-22).** Because
+`get_label_id()` assigned IDs by order of first appearance, the
+specific mapping `{horns:0, noise:1, bells:2, gunshots:3, sirens:4}`
+this project relies on everywhere (firmware's `WAV_FILES[]`, both
+training scripts' `CLASS_NAMES` export) was an accident of
+collection-session history, not something enforced anywhere — correct
+for the current `ml/echosafe_dataset.npz` only by observation. Nothing
+stopped a future from-scratch collection session (a fresh `--output`
+path, or a wiped dataset) from producing a differently-ordered map that
 trains and exports "successfully" while silently mismatching the
 firmware's fixed positional assumptions about which class ID is which
-sound. Worth a fixed canonical `label_map` (hardcoded once, validated
-against on load) if this dataset ever gets rebuilt from scratch rather
-than incrementally extended.
+sound.
+
+Confirmed first that this couldn't just be fixed downstream instead —
+grepped `retrain.py`/`train_on_esp32_features.py` and found neither
+script reconstructs a `label_map`; both just consume whatever's stored
+in the `.npz`, so `serial_logger.py`'s `get_label_id()`/
+`load_existing_dataset()` really is the only place ID assignment is
+decided. Added a module-level `CANONICAL_LABEL_MAP` (the same 5-class
+mapping above) and wired it in two places: `get_label_id()` now assigns
+a known class name its fixed canonical ID immediately regardless of
+what order labels get typed in a session (a genuinely new/6th class
+still falls back to the next free ID above whatever's assigned), and
+`load_existing_dataset()` validates every loaded class against the
+canonical map, raising a loud `ValueError` naming the exact mismatch if
+a loaded dataset's `label_map` ever disagrees — rather than silently
+trusting it and letting the drift compound. A same-canonical-ID
+collision (two different names both trying to claim the same slot) also
+raises instead of silently overwriting.
+
+Verified with a standalone harness (no serial hardware needed, same
+pattern as the original `serial_logger.py` review) exercising: labels
+typed out of canonical order still land on their fixed IDs; a novel 6th
+class still gets the next free ID; a matching loaded dataset passes
+validation; a deliberately desynced one raises with the mismatched
+class named; and the collision guard fires. 7/7 checks passed. Also
+loaded the real, tracked `ml/echosafe_dataset.npz` through the updated
+code (read-only) and confirmed its `label_map` already matches
+`CANONICAL_LABEL_MAP` exactly — this fix changes nothing about the
+current dataset, only about what a future from-scratch session could
+silently produce.
 
 ---
 
