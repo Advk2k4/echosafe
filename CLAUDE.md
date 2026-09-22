@@ -177,6 +177,25 @@ works today — this is a forward-looking maintenance note, not a bug:
 a future ESP32 core release could remove the legacy API outright, which
 would break the build. Worth a migration pass eventually, not urgent.
 
+**Scoped, deferred to bring-up (2026-09-22).** Before starting this
+migration as part of a general loose-end cleanup pass, actually counted
+the real call sites rather than assuming it was a small swap: 35 in
+`echosafe_full_system.ino` alone, ~10 and ~9 in
+`echosafe_inference.ino`/`echosafe_feature_collector.ino`. Not a
+mechanical find-replace either — `i2s_std.h`'s API is a different
+object model entirely (channel handles with an explicit init/enable/
+disable/delete lifecycle) vs. the legacy API's port-number model, so
+every init function would need rewriting from scratch, including the
+exact RX/TX mode-switching logic on `I2S_NUM_1` that the "I2S_NUM_1
+mode-switch code review" above just carefully audited and fixed real
+bugs in. Presented this scope/risk to the user before starting (a full
+untested rewrite of the least-tested, most hardware-critical part of
+the firmware, verifiable only by clean compiles, with no hardware yet
+to test real I2S timing against) — **decided to defer the migration
+until real hardware exists for bring-up**, rather than rewrite it blind
+now. The legacy API still compiles and works; this is purely a
+forward-looking maintenance item, not something blocking anything.
+
 **`echosafe_inference.ino`** — compiles clean (552,163 bytes / 3%
 flash, 63,556 bytes / 19% RAM), same single pre-existing i2s.h
 deprecation warning, same non-issue.
