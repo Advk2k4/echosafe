@@ -1481,6 +1481,42 @@ HiLetGo TP4056 Amazon listing) rather than re-researched.
 This is a single-unit list — quantities would need multiplying for more
 than one device, which isn't handled by the tool itself.
 
+**Harness cables actually sourced (2026-09-22).** The "gap" flagged
+above was left as a description, not a purchasable part — went back
+and found real options for both:
+
+- **9-pin (front L/R): solved with a real, verified, off-the-shelf
+  part.** [Adafruit #4350](https://www.adafruit.com/product/4350),
+  "JST SH 9-Pin Cable - 100mm long," $1.95, confirmed in stock —
+  its own product description states JST-SH female connectors on
+  *both* ends, 1.0mm pitch. Plugs directly into the pod's J2/J3 and
+  the matching module's J1 with no assembly. Qty 2.
+- **7-pin (rear L/R): no equivalent off-the-shelf part exists** —
+  checked Adafruit's own catalog directly (searched "JST SH 7-pin,"
+  nothing relevant in stock) rather than assuming one might turn up.
+  Two realistic options instead, neither as clean as the 9-pin above:
+  (1) a generic 1.0mm-pitch JST-SH connector kit (several near-
+  identical listings on Amazon, ~$17, female housings + pre-crimped
+  28AWG wire spanning 3-10 pins including 7 — confirmed via an actual
+  product page's description, "no soldering required," insert the
+  same pre-crimped wire into two separate 7-pin housings to build a
+  female-female cable at whatever length is needed); or (2) 2×
+  [PCBoard.ca's JST SH 1.0mm 7-Pin Receptacle
+  Cable](https://www.pcboard.ca/jst-sh-7-pin-cable) ($0.90 each) —
+  checked its actual product page and confirmed it's single-ended
+  (connector on one end, bare tinned wire on the other), so this
+  route means splicing two of them together at the bare-wire ends
+  with heatshrink, real hand-assembly work the 9-pin part avoids
+  entirely.
+
+Both added to the shopping list Artifact's "gaps" section with real
+links, replacing the earlier vague "crimp housings + contacts + wire"
+placeholder. Also worth noting for anyone reading this later: PCBoard.ca's
+*9-pin* cable (found during the same research pass) is the same
+single-ended style as its 7-pin one — Adafruit's #4350 is the better
+choice for the front connectors specifically because it's double-ended,
+not just because it was the first result.
+
 ### Multi-Board Project Structure (2026-09-12)
 
 `hardware/` now holds **5 independent KiCad projects**, not one:
