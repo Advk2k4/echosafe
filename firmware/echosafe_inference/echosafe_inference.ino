@@ -19,7 +19,7 @@
  *   's' - Stop
  */
 
-#include <driver/i2s.h>
+#include <driver/i2s_std.h>
 #include <math.h>
 #include "model_weights.h"
 
@@ -38,8 +38,8 @@
 #define PRE_EMPHASIS 0.97f
 #define THRESHOLD    0.65f
 // ICS43434 L/R pin: LOW (GND) = left channel, HIGH (VCC) = right channel
-// Change to I2S_CHANNEL_FMT_ONLY_RIGHT if your L/R pin is tied HIGH
-#define MIC_CHANNEL  I2S_CHANNEL_FMT_ONLY_LEFT
+// Change to I2S_STD_SLOT_RIGHT if your L/R pin is tied HIGH
+#define MIC_CHANNEL  I2S_STD_SLOT_LEFT
 
 // ============= GLOBAL BUFFERS =============
 float   frame_buf[FRAME_SIZE];
@@ -54,6 +54,7 @@ float   dct_m[NUM_MFCC][MEL_BINS];
 float   feat[INPUT_DIM];
 float   l1[128], l2[64], probs[NUM_CLASSES];
 bool    cont_mode = false;
+static i2s_chan_handle_t mic_rx_handle = NULL;
 
 // ============= MEL / DCT INIT =============
 
@@ -130,33 +131,46 @@ void extract_mfcc(float* frame, float* mfcc) {
 // ============= MICROPHONE =============
 
 void init_mic() {
-  i2s_config_t cfg = {
-    .mode                 = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-    .sample_rate          = SAMPLE_RATE,
-    .bits_per_sample      = I2S_BITS_PER_SAMPLE_32BIT,
-    .channel_format       = MIC_CHANNEL,
-    .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S),
-    .intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1,
-    .dma_buf_count        = 8,
-    .dma_buf_len          = 256,
-    .use_apll             = false,
-    .tx_desc_auto_clear   = false,
-    .fixed_mclk           = 0
+  i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(MIC_PORT, I2S_ROLE_MASTER);
+  // Match the legacy driver's dma_buf_count=8/dma_buf_len=256 explicitly --
+  // the new API's own defaults (6 descriptors x 240 frames) are close but
+  // not identical, and this migration isn't meant to also retune buffering.
+  chan_cfg.dma_desc_num  = 8;
+  chan_cfg.dma_frame_num = 256;
+  i2s_new_channel(&chan_cfg, NULL, &mic_rx_handle);  // NULL tx handle: RX only
+
+  i2s_std_config_t std_cfg = {
+    .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG(SAMPLE_RATE),
+    .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO),
+    .gpio_cfg = {
+      .mclk = I2S_GPIO_UNUSED,
+      .bclk = (gpio_num_t)MIC_SCK,
+      .ws   = (gpio_num_t)MIC_WS,
+      .dout = I2S_GPIO_UNUSED,
+      .din  = (gpio_num_t)MIC_SD,
+      .invert_flags = { .mclk_inv = false, .bclk_inv = false, .ws_inv = false },
+    },
   };
-  i2s_driver_install(MIC_PORT, &cfg, 0, NULL);
-  i2s_pin_config_t pins = {
-    .bck_io_num   = MIC_SCK,
-    .ws_io_num    = MIC_WS,
-    .data_out_num = I2S_PIN_NO_CHANGE,
-    .data_in_num  = MIC_SD
-  };
-  i2s_set_pin(MIC_PORT, &pins);
-  i2s_zero_dma_buffer(MIC_PORT);
+  // I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG's mono case only defaults slot_mask
+  // to LEFT on the original ESP32/ESP32-S2 -- on the S3 (this target) the
+  // driver's own macro leaves it at BOTH regardless of mono/stereo, so the
+  // single physical slot to capture has to be selected explicitly here.
+  std_cfg.slot_cfg.slot_mask = MIC_CHANNEL;
+
+  i2s_channel_init_std_mode(mic_rx_handle, &std_cfg);
+  i2s_channel_enable(mic_rx_handle);
+  // No RX equivalent of the legacy i2s_zero_dma_buffer(): the new driver's
+  // only "auto clear" options are documented as TX-buffer-only, and an RX
+  // buffer's prior contents don't matter since real samples overwrite it on
+  // every DMA transfer regardless.
 }
 
 void read_frame(float* buf) {
   size_t bytes = 0;
-  i2s_read(MIC_PORT, i2s_buf, FRAME_SIZE * sizeof(int32_t), &bytes, portMAX_DELAY);
+  // timeout_ms is milliseconds here, not RTOS ticks like the legacy
+  // i2s_read()'s portMAX_DELAY -- reusing the same constant still means
+  // "block for billions of ms," i.e. effectively forever, same as before.
+  i2s_channel_read(mic_rx_handle, i2s_buf, FRAME_SIZE * sizeof(int32_t), &bytes, portMAX_DELAY);
   for (int i = 0; i < FRAME_SIZE; i++)
     buf[i] = (float)i2s_buf[i] / 2147483648.0f;
 }

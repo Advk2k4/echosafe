@@ -196,9 +196,74 @@ until real hardware exists for bring-up**, rather than rewrite it blind
 now. The legacy API still compiles and works; this is purely a
 forward-looking maintenance item, not something blocking anything.
 
-**`echosafe_inference.ino`** — compiles clean (552,163 bytes / 3%
-flash, 63,556 bytes / 19% RAM), same single pre-existing i2s.h
-deprecation warning, same non-issue.
+**Revisited, migrated `echosafe_inference.ino` only (2026-09-24).**
+Re-examined with a narrower scope on purpose: this sketch is the
+simplest of the three — single I2S port (`I2S_NUM_0`), RX-only, no
+mode-switching — so migrating it first validates the new API's real
+shape on something low-risk, without touching
+`echosafe_full_system.ino`'s riskier RX/TX-multiplexed logic (still
+deferred, same reasoning as above). Every struct field and function
+signature below was checked against the actual installed header
+(`~/Library/Arduino15/.../esp32s3-libs/3.3.12/include/esp_driver_i2s/include/driver/i2s_std.h`
+and `i2s_common.h`), not recalled from general ESP-IDF familiarity —
+this target (ESP32-S3) turned out to have a real, non-obvious
+difference from the original ESP32/ESP32-S2 the API was probably
+first learned on:
+
+- `I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(..., I2S_SLOT_MODE_MONO)`'s
+  slot-mask default (which physical L/R slot gets captured) is
+  conditional on target — it defaults to `I2S_STD_SLOT_LEFT` for mono
+  on the original ESP32/ESP32-S2, but on the S3 (and other newer
+  targets) the macro unconditionally sets `I2S_STD_SLOT_BOTH`
+  regardless of mono/stereo. Missing this would have silently ignored
+  the mic's L/R-select pin entirely. Fixed by setting
+  `std_cfg.slot_cfg.slot_mask` explicitly after the macro, driven by
+  the same `MIC_CHANNEL` define the legacy code used (now
+  `I2S_STD_SLOT_LEFT`/`_RIGHT` instead of
+  `I2S_CHANNEL_FMT_ONLY_LEFT`/`_RIGHT`).
+- `i2s_channel_read()`'s timeout parameter is genuinely in
+  milliseconds (`uint32_t timeout_ms`, confirmed from the header's own
+  doc comment), not RTOS ticks like the legacy `i2s_read()`'s
+  `portMAX_DELAY`. Reusing `portMAX_DELAY` as the argument still
+  compiles and still means "block effectively forever" (it evaluates
+  to billions of ms, not a short timeout), so behavior is preserved,
+  but the unit change is real and is called out in a comment so a
+  future reader doesn't assume it's still tick-based.
+- The legacy `i2s_zero_dma_buffer()` call has no RX equivalent in the
+  new driver — checked `i2s_common.h` directly and the only "auto
+  clear" options that exist are documented as TX-buffer-specific.
+  Dropped, with a comment explaining why rather than silently omitting
+  it: an RX buffer's prior contents don't matter since real samples
+  overwrite it on every DMA transfer regardless, so there was nothing
+  to port.
+- `dma_desc_num`/`dma_frame_num` (the new API's DMA buffer sizing) were
+  set explicitly to match the legacy driver's `dma_buf_count=8`/
+  `dma_buf_len=256` rather than accepted at the new API's own defaults
+  (6/240) — this migration is a driver-API swap, not a buffering
+  retune, so the tuning was preserved deliberately.
+
+Verified the same way as every other unverifiable-without-hardware fix
+in this project: a real, clean `arduino-cli` compile (`--warnings all`
+shows nothing at all now — the `driver/i2s.h` deprecation warning
+this file used to share with the other two sketches is genuinely
+gone), and a direct before/after comparison against the unmodified
+file with the identical build command to confirm the change is real
+and isolated: 552,147→550,267 bytes flash (1,880 bytes smaller),
+63,556→63,540 bytes RAM (16 bytes smaller) — small, sensible
+reductions from simpler driver calls, nothing unexpected. Like every
+other firmware fix in this project's current state, this has **not**
+been exercised on real hardware — no hardware exists yet — only
+verified by compilation and by checking every API detail against the
+real installed header files.
+
+**`echosafe_inference.ino`** — compiles clean (550,267 bytes / 42%
+flash — corrected 2026-09-24; the "3%" this line originally said was
+a documentation error, confirmed by compiling the unmodified
+pre-migration file with the identical command and getting 42% too, so
+it predates and is unrelated to the migration above, most likely a
+copy-paste slip from `echosafe_full_system.ino`'s own 3% line just
+above this section — 63,540 bytes / 19% RAM. No more i2s.h deprecation
+warning — see "Revisited, migrated..." above.
 
 **`echosafe_feature_collector.ino`** — compiles clean (307,499 bytes /
 23% flash, 59,076 bytes / 18% RAM) against `FlashSize=16M` with the
@@ -238,6 +303,10 @@ the 3 that use `driver/i2s.h`. This confirms the code is well-formed
 C++ that a real ESP-IDF toolchain accepts — it does not confirm the
 firmware actually works correctly on real hardware, which still hasn't
 happened (see "Current Status" at the top of this file).
+(As of 2026-09-24, this is no longer true for all 3 — `echosafe_inference.ino`
+was migrated off `driver/i2s.h` and no longer carries the warning; see
+"Revisited, migrated `echosafe_inference.ino` only" below. The other 2
+still use the legacy driver, deliberately deferred.)
 
 ### TDOA / Direction-Detection Math Audit (2026-09-20/21)
 
