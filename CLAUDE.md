@@ -2104,6 +2104,24 @@ are worth the added protection-circuit and inductor-selection work,
 that's a call only the user can make — nothing in `TP4056_Module.kicad_mod`
 or `EchoSafe_RevA.kicad_sch` has been changed.
 
+**Decided (2026-09-24): keeping TP4056 + LD1117V33, not switching.**
+Revisited this open question directly with the user rather than letting
+it sit indefinitely — presented the same tradeoffs above (no integrated
+protection, a real inductor + RICHG/RVSET application circuit to design
+from the IP2312 datasheet, a new 750kHz switching source newly adjacent
+to the audio path) and the decision was to keep the status quo. Matches
+the reasoning already laid out above: this design has favored hand-
+solderable simplicity at every prior module/breakout choice (TP4056
+module, LD1117V33 breakout, JST connectors), and IP2312 would be the
+first part in the design that isn't a drop-in — it would need its own
+small charger-circuit design pass (protection IC selection, inductor
+sourcing, resistor sizing) rather than just a footprint swap. No files
+changed as a result — `TP4056_Module.kicad_mod` and
+`EchoSafe_RevA.kicad_sch` stay exactly as they were. This closes the
+question rather than leaving it open; if the calculus changes later
+(e.g. board size becomes a harder constraint), the IP2312 research
+above is still there to restart from.
+
 **PCB re-synced to match (2026-09-15):** J1's PCB footprint was swapped
 and its 4 nets (`VBAT`, `GND`, `VSYS`, `GND`) rerouted to the new pad
 positions — pad "2" (BAT-/GND) was kept at its exact old location since
