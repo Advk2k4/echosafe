@@ -14,7 +14,7 @@
  * - 's': Stop continuous mode
  */
 
-#include <driver/i2s.h>
+#include <driver/i2s_std.h>
 #include <math.h>
 
 // ============= CONFIGURATION =============
@@ -58,6 +58,7 @@ float dct_matrix[NUM_MFCC][MEL_BINS];
 
 // State
 bool continuous_mode = false;
+static i2s_chan_handle_t mic_rx_handle = NULL;
 
 // ============= HELPER FUNCTIONS =============
 
@@ -220,52 +221,69 @@ void extract_mfcc_frame(float* frame, float* mfcc) {
 // ============= I2S FUNCTIONS =============
 
 void init_i2s() {
-  i2s_config_t i2s_config = {
-    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-    .sample_rate = SAMPLE_RATE,
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-    .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S),
-    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-    .dma_buf_count = 8,
-    .dma_buf_len = 256,
-    .use_apll = false,
-    .tx_desc_auto_clear = false,
-    .fixed_mclk = 0
-  };
+  i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_PORT, I2S_ROLE_MASTER);
+  // Match the legacy driver's dma_buf_count=8/dma_buf_len=256 explicitly --
+  // the new API's own defaults (6 descriptors x 240 frames) are close but
+  // not identical, and this migration isn't meant to also retune buffering.
+  chan_cfg.dma_desc_num  = 8;
+  chan_cfg.dma_frame_num = 256;
 
-  esp_err_t err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+  esp_err_t err = i2s_new_channel(&chan_cfg, NULL, &mic_rx_handle);  // NULL tx handle: RX only
   if (err != ESP_OK) {
-    Serial.print("ERROR: I2S driver install failed: ");
+    Serial.print("ERROR: I2S channel creation failed: ");
     Serial.println(err);
     return;
   }
   Serial.println("DEBUG: I2S driver installed");
   Serial.flush();
 
-  i2s_pin_config_t pin_config = {
-    .bck_io_num = I2S_SCK,
-    .ws_io_num = I2S_WS,
-    .data_out_num = I2S_PIN_NO_CHANGE,
-    .data_in_num = I2S_SD
+  i2s_std_config_t std_cfg = {
+    .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG(SAMPLE_RATE),
+    .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO),
+    .gpio_cfg = {
+      .mclk = I2S_GPIO_UNUSED,
+      .bclk = (gpio_num_t)I2S_SCK,
+      .ws   = (gpio_num_t)I2S_WS,
+      .dout = I2S_GPIO_UNUSED,
+      .din  = (gpio_num_t)I2S_SD,
+      .invert_flags = { .mclk_inv = false, .bclk_inv = false, .ws_inv = false },
+    },
   };
+  // See echosafe_inference.ino's migration (CLAUDE.md, Firmware section):
+  // on the S3, I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG's mono case leaves
+  // slot_mask at BOTH regardless of mono/stereo (unlike the original
+  // ESP32/ESP32-S2, where it defaults to LEFT) -- the physical slot has to
+  // be selected explicitly or the mic's L/R-select pin would be ignored.
+  std_cfg.slot_cfg.slot_mask = I2S_STD_SLOT_LEFT;
 
-  err = i2s_set_pin(I2S_PORT, &pin_config);
+  err = i2s_channel_init_std_mode(mic_rx_handle, &std_cfg);
   if (err != ESP_OK) {
-    Serial.print("ERROR: I2S set pin failed: ");
+    Serial.print("ERROR: I2S std mode init failed: ");
+    Serial.println(err);
+    return;
+  }
+
+  err = i2s_channel_enable(mic_rx_handle);
+  if (err != ESP_OK) {
+    Serial.print("ERROR: I2S channel enable failed: ");
     Serial.println(err);
     return;
   }
   Serial.println("DEBUG: I2S pins configured");
   Serial.flush();
-
-  i2s_zero_dma_buffer(I2S_PORT);
+  // No RX equivalent of the legacy i2s_zero_dma_buffer(): the new driver's
+  // only "auto clear" options are documented as TX-buffer-only, and an RX
+  // buffer's prior contents don't matter since real samples overwrite it on
+  // every DMA transfer regardless.
 }
 
 // Read audio frame from I2S microphone
 void read_audio_frame(float* buffer, int size) {
   size_t bytes_read = 0;
-  i2s_read(I2S_PORT, i2s_buffer, size * sizeof(int32_t), &bytes_read, portMAX_DELAY);
+  // timeout_ms is milliseconds here, not RTOS ticks like the legacy
+  // i2s_read()'s portMAX_DELAY -- reusing the same constant still means
+  // "block for billions of ms," i.e. effectively forever, same as before.
+  i2s_channel_read(mic_rx_handle, i2s_buffer, size * sizeof(int32_t), &bytes_read, portMAX_DELAY);
 
   // Convert 32-bit I2S samples to float and normalize
   for (int i = 0; i < size; i++) {

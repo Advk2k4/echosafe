@@ -265,11 +265,44 @@ copy-paste slip from `echosafe_full_system.ino`'s own 3% line just
 above this section — 63,540 bytes / 19% RAM. No more i2s.h deprecation
 warning — see "Revisited, migrated..." above.
 
-**`echosafe_feature_collector.ino`** — compiles clean (307,499 bytes /
+**Revisited, migrated `echosafe_feature_collector.ino` too (2026-09-24).**
+Continuing the same step-by-step approach as `echosafe_inference.ino`
+above — this sketch has the identical low-risk shape (single I2S port,
+RX-only, no mode-switching), just under different variable names
+(`I2S_PORT`/`I2S_WS`/`I2S_SD`/`I2S_SCK` here vs. `MIC_PORT`/`MIC_WS`/
+etc. there). Same API, same real-header verification, same
+`I2S_STD_SLOT_LEFT` slot-mask gotcha applies identically (see above for
+the full explanation) — not re-derived, just re-applied.
+
+One real difference from `echosafe_inference.ino`'s migration: this
+file's original `init_i2s()` actually checks `i2s_driver_install()`/
+`i2s_set_pin()`'s return codes and prints a Serial error on failure —
+`echosafe_inference.ino`'s `init_mic()` didn't have any error checking
+to begin with, so there was nothing to preserve there. Here, that
+behavior was carried over deliberately: `i2s_new_channel()`,
+`i2s_channel_init_std_mode()`, and `i2s_channel_enable()` are all
+checked the same way, so a real init failure still surfaces over
+Serial instead of silently leaving the sketch running captureless.
+
+Verified the same way: `arduino-cli --warnings all` shows nothing (the
+i2s.h deprecation warning is gone), and a before/after comparison
+against the unmodified file with the identical build command confirms
+the change is real and isolated: 307,499→305,699 bytes flash (1,800
+bytes smaller, same class of reduction as the other sketch's
+migration), RAM unchanged at 59,076 bytes (expected — this file's RAM
+footprint is dominated by its own feature-extraction buffers, not
+driver internals). Unlike `echosafe_inference.ino`'s entry, this file's
+existing "23% flash" figure checked out correctly against the same
+command, no documentation error found here. Not tested on real
+hardware — none exists yet — only compilation and the same header
+cross-checking as the first sketch.
+
+**`echosafe_feature_collector.ino`** — compiles clean (305,699 bytes /
 23% flash, 59,076 bytes / 18% RAM) against `FlashSize=16M` with the
 *default* partition scheme (no custom `partitions.csv` in this sketch's
 folder, and it doesn't need one — no LittleFS/WAV usage, just serial
-streaming). Same i2s.h warning.
+streaming). No more i2s.h deprecation warning — see "Revisited,
+migrated `echosafe_feature_collector.ino` too" above.
 
 **`uploadLittleFS.ino`** — not part of the original ask (it's a
 "development/debug utility only" tool per its own description above),
@@ -304,9 +337,12 @@ C++ that a real ESP-IDF toolchain accepts — it does not confirm the
 firmware actually works correctly on real hardware, which still hasn't
 happened (see "Current Status" at the top of this file).
 (As of 2026-09-24, this is no longer true for all 3 — `echosafe_inference.ino`
-was migrated off `driver/i2s.h` and no longer carries the warning; see
-"Revisited, migrated `echosafe_inference.ino` only" below. The other 2
-still use the legacy driver, deliberately deferred.)
+and `echosafe_feature_collector.ino` were both migrated off `driver/i2s.h`
+and no longer carry the warning; see the two "Revisited, migrated..."
+entries below. Only `echosafe_full_system.ino` still uses the legacy
+driver, deliberately deferred — its RX/TX mode-switching logic is the
+one part of this migration too risky to do blind, without hardware to
+test against.)
 
 ### TDOA / Direction-Detection Math Audit (2026-09-20/21)
 
